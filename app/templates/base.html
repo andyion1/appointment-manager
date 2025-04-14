@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title%}{% endblock%}</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/page.css') }}">
+</head>
+<body>
+    <header>
+        <nav>
+        </nav>
+        <section id="flashed_messages">
+        </section>☻
+    </header>
+    <main>
+        <section id="left-column">{% block left_column%}{% endblock%}</section>
+        <section id="right-column">{% block right_column%}{% endblock%}</section>
+    </main>
+    <footer>
+        <ul>
+            <li>
+                Josh, Andy And David
+            </li>
+            <li>
+                Section 2
+            </li>
+            <li>
+                Winter 2025
+            </li>
+        </ul>
+    </footer>
+</body>
+</html>
