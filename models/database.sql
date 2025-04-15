@@ -4,23 +4,42 @@ DROP TABLE IF EXISTS APPOINTMENT CASCADE;
 DROP TABLE IF EXISTS USER CASCADE;
 DROP TABLE IF EXISTS REPORT CASCADE;
 
-CREATE TABLE STUDENT(
+CREATE TABLE USER(
+    user_id SERIAL PRIMARY KEY,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    full_name VARCHAR(100),
+    role VARCHAR(20) CHECK (role IN ('student', 'teacher', 'admin_user', 'admin_appoint', 'superuser')),
+);
 
+CREATE TABLE STUDENT(
+    student_id SERIAL PRIMARY KEY,
+    user_id INT UNIQUE REFERENCES USER(user_id) ON DELETE CASCADE,
+    program VARCHAR(100),
+    student_number VARCHAR(20)
 );
 
 CREATE TABLE TEACHER(
-
+    teacher_id SERIAL PRIMARY KEY,
+    user_id INT UNIQUE REFERENCES USER(user_id) ON DELETE CASCADE,
+    department VARCHAR(100),
+    office_location VARCHAR(50)
 );
 
 CREATE TABLE APPOINTMENT(
-
-);
-
-CREATE TABLE USER(
-    
+    appointment_id SERIAL PRIMARY KEY,
+    student_id INT REFERENCES STUDENT(student_id) ON DELETE CASCADE,
+    teacher_id INT REFERENCES TEACHER(teacher_id) ON DELETE CASCADE,
+    appointment_date TIMESTAMP NOT NULL,
+    status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'cancelled')),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE REPORT(
-
+    report_id SERIAL PRIMARY KEY,
+    generated_by INT REFERENCES USER(user_id),
+    content TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
