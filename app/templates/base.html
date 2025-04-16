@@ -7,19 +7,14 @@
     {% block extra_css %}{% endblock %}
 </head>
 <body>
-    <nav>
+    <nav id="horizontal">
         <div class="nav-container">
             <div class="logo">Office Hour Scheduler</div>
             <ul class="nav-links">
-                <li><a href="">Home</a></li>
-                <li><a href="">About</a></li>
-                {% if current_user.is_authenticated %}
-                    <li><a href="">Profile</a></li>
-                    <li><a href="">Logout</a></li>
-                {% else %}
-                    <li><a href="">Login</a></li>
-                    <li><a href="">Register</a></li>
-                {% endif %}
+                <li><a href="{{ url_for('main.home') }}">Home</a></li>
+                <li><a href="{{ url_for('main.about') }}">About</a></li>
+                <li><a href="">Register</a></li>
+                <li><a href="">Login</a></li>
             </ul>
         </div>
     </nav>
@@ -36,12 +31,14 @@
         {% endwith %}
     </div>
     
-    <main>
-        {% block content %}
-        <!-- Page-specific content will go here -->
-        {% endblock %}
-    </main>
-    
+    <div class="page-container">
+        <nav id="vertical">{% block nav %}{% endblock %}</nav>
+        <main>
+            {% block content %}
+            <!-- Page-specific content will go here -->
+            {% endblock %}
+        </main>
+    </div>    
     <footer>
         <div class="footer-container">
             <div class="footer-section">
@@ -58,7 +55,5 @@
             
         </div>
     </footer>
-
-    {% block extra_js %}{% endblock %}
 </body>
 </html>
