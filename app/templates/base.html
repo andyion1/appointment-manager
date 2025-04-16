@@ -2,33 +2,63 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title%}{% endblock%}</title>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/page.css') }}">
+    <title>{% block title %}Student-Teacher Office Hour Scheduler{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/style.css') }}">
+    {% block extra_css %}{% endblock %}
 </head>
 <body>
-    <header>
-        <nav>
-        </nav>
-        <section id="flashed_messages">
-        </section>☻
-    </header>
+    <nav>
+        <div class="nav-container">
+            <div class="logo">Office Hour Scheduler</div>
+            <ul class="nav-links">
+                <li><a href="">Home</a></li>
+                <li><a href="">About</a></li>
+                {% if current_user.is_authenticated %}
+                    <li><a href="">Profile</a></li>
+                    <li><a href="">Logout</a></li>
+                {% else %}
+                    <li><a href="">Login</a></li>
+                    <li><a href="">Register</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </nav>
+    
+    <div class="flash-messages">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash-message {{ category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+    
     <main>
-        <section id="left-column">{% block left_column%}{% endblock%}</section>
-        <section id="right-column">{% block right_column%}{% endblock%}</section>
+        {% block content %}
+        <!-- Page-specific content will go here -->
+        {% endblock %}
     </main>
+    
     <footer>
-        <ul>
-            <li>
-                Josh, Andy And David
-            </li>
-            <li>
-                Section 2
-            </li>
-            <li>
-                Winter 2025
-            </li>
-        </ul>
+        <div class="footer-container">
+            <div class="footer-section">
+                <h3>About Us</h3>
+                <p>Andy, Josh, David | Section 2 | Winter 2025</p>
+            </div>
+            
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <ul class="footer-links">
+
+                </ul>
+            </div>
+            
+        </div>
     </footer>
+
+    {% block extra_js %}{% endblock %}
 </body>
 </html>
