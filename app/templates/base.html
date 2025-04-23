@@ -32,7 +32,39 @@
     </div>
     
     <div class="page-container">
-        <nav id="vertical">{% block nav %}{% endblock %}</nav>
+        <nav id="vertical">
+           <!-- Not set up yet will add later {% if not current_user.is_authenticated %} -->
+            <h4 class="nav-section-title">Visitor Access</h4>
+            <ul class="nav-section">
+                <li><a href="{{ url_for('main.home') }}">Home</a></li>
+                <li><a href="{{ url_for('user.login') }}">Login</a></li>
+                <li><a href="{{ url_for('user.register') }}">Register</a></li>
+            </ul>
+            <!--{% endif %}-->
+
+            <!--{% if current_user.is_authenticated %}-->
+            <h4 class="nav-section-title"><!--{{ current_user.role|capitalize }}--> Access</h4>
+            <ul class="nav-section">
+                <!--{% if current_user.role in ['student', 'teacher'] %}-->
+                <li><a href="{{ url_for('appointment.book') }}">Book Appointment</a></li>
+                <li><a href="{{ url_for('appointment.my_appointments') }}">My Appointments</a></li>
+                <!--{% endif %}-->
+                <!--{% if current_user.role == 'admin_user' %}-->
+                <li><a href="{{ url_for('admin_user.manage_members') }}">Manage Users</a></li>
+                <!--{% endif %}-->
+                <!--{% if current_user.role == 'admin_appoint' %}-->
+                <li><a href="{{ url_for('admin_appoint.manage_appointments') }}">Manage Appointments</a></li>
+                <!--{% endif %}-->
+                <!--{% if current_user.role == 'superuser' %}-->
+                <li><a href="{{ url_for('admin.dashboard') }}">Dashboard</a></li>
+                <li><a href="{{ url_for('admin.manage_users') }}">Manage Users</a></li>
+                <li><a href="{{ url_for('admin.manage_appointments') }}">Manage Appointments</a></li>
+                <li><a href="{{ url_for('report.view') }}">Reports</a></li>
+                <!--{% endif %}-->
+                <li><a href="{{ url_for('auth.logout') }}">Logout</a></li>
+            </ul>
+            <!--{% endif %}-->
+        </nav>
         <main>
             {% block content %}
             <!-- Page-specific content will go here -->
