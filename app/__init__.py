@@ -7,7 +7,14 @@ from .user.routes import user
 from .student.routes import student
 
 def create_app():
+    
     app = Flask(__name__)
+    
+    login_manager = LoginManager()
+    login_manager.init_app(app)
+    @login_manager.user_loader
+    def load_user(user_id):
+        return None
     app.register_blueprint(main)
     app.register_blueprint(appointment)
     app.register_blueprint(report)
