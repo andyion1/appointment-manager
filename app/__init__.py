@@ -5,11 +5,14 @@ from .appointment.routes import appointment
 from .report.routes import report
 from .user.routes import user
 from .student.routes import student
+from config import Config
 
 def create_app():
     
     app = Flask(__name__)
-    
+    app.config.from_object(Config)
+
+
     login_manager = LoginManager()
     login_manager.init_app(app)
     @login_manager.user_loader
