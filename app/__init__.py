@@ -11,16 +11,10 @@ from config import Config
 def create_app():
     
     app = Flask(__name__)
-<<<<<<< HEAD
-    app.config.from_object(Config)
-
-
-=======
     
     # Load configuration
     app.config.from_object(Config)
     
->>>>>>> 919741f2335c17c05d95d1eb1567e82edb0cc552
     login_manager = LoginManager()
     login_manager.init_app(app)
     @login_manager.user_loader
