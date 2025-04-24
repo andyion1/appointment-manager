@@ -1,7 +1,49 @@
 {% extends "base.html" %}
-{% block nav %}
+{% from "_field_error.html" import render_field %}
 
+{% block title %}Login - Office Hour Scheduler{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('user.static', filename='forms.css') }}">
 {% endblock %}
-{% block content %}
 
+{% block content %}
+<section class="auth-container">
+    <h2>Login</h2>
+    <form method="POST" action="{{ url_for('user.login') }}">
+        {{ form.hidden_tag() }}
+        
+        <section class="form-section">
+            {{ form.username.label(class="form-label") }}
+            {{ form.username(class="form-control") }}
+            {% if form.username.errors %}
+                <ul class="errors">
+                    {% for error in form.username.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </section>
+        
+        <section class="form-section">
+            {{ form.password.label(class="form-label") }}
+            {{ form.password(class="form-control") }}
+            {% if form.password.errors %}
+                <ul class="errors">
+                    {% for error in form.password.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </section>
+        
+        <section class="form-section">
+            {{ form.submit(class="submit-button primary-button") }}
+        </section>
+    </form>
+    
+    <section class="auth-links">
+        <p>Don't have an account? <a href="{{ url_for('user.register') }}">Register</a></p>
+    </section>
+</section>
 {% endblock %}
