@@ -8,10 +8,17 @@ from .user.routes import user
 from .student.routes import student
 
 def create_app():
+    
     app = Flask(__name__)
     
     # Load configuration
     app.config.from_object(Config)
+    
+    login_manager = LoginManager()
+    login_manager.init_app(app)
+    @login_manager.user_loader
+    def load_user(user_id):
+        return None
     
     # Register blueprints
     app.register_blueprint(main)
