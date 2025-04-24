@@ -4,13 +4,13 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from models.database import db
 
 class User(UserMixin):
-    def __init__(self, user_id=None, username=None, password_hash=None, email=None, full_name=None, role=None):
-        self.user_id = user_id
-        self.username = username
-        self.password_hash = password_hash
-        self.email = email
-        self.full_name = full_name
-        self.role = role
+    def __init__(self, *args):
+        self.user_id = args[0] 
+        self.username = args[1] 
+        self.password_hash = args[2]
+        self.email = args[3]
+        self.full_name = args[4]
+        self.role = args[5]
     
     
     def get_id(self):
