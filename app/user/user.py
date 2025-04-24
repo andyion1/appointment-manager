@@ -1,0 +1,179 @@
+from flask import flash
+from flask_login import UserMixin
+from werkzeug.security import generate_password_hash, check_password_hash
+from models.database import db
+
+class User(UserMixin):
+    def __init__(self, user_id=None, username=None, password_hash=None, email=None, full_name=None, role=None):
+        self.user_id = user_id
+        self.username = username
+        self.password_hash = password_hash
+        self.email = email
+        self.full_name = full_name
+        self.role = role
+    
+    
+    def get_id(self):
+        return str(self.user_id)
+    
+    @staticmethod
+    def create_user(username, password, email, full_name, role):
+        """Creates a new user in the database"""
+        # Check if username already exists
+        cond = f"username = '{username}'"
+        existing_user = db.get_user(cond)
+        if existing_user:
+            flash("This username is already taken.", "danger")
+            return None
+        
+        # Check if email already exists
+        cond = f"email = '{email}'"
+        existing_email = db.get_user(cond)
+        if existing_email:
+            flash("This email is already registered.", "danger")
+            return None
+        
+        # Create new user with hashed password
+        hashed_password = generate_password_hash(password)
+        user = User(0, username, hashed_password, email, full_name, role)
+        
+        # Add user to database
+        db.add_user(user)
+        return user
+    
+    @staticmethod
+    def get_user_by_id(user_id):
+        """Fetches a user by their ID"""
+        cond = f"user_id = {user_id}"
+        return db.get_user(cond)
+    
+    @staticmethod
+    def get_user_by_username(username):
+        """Fetches a user by their username"""
+        cond = f"username = '{username}'"
+        return db.get_user(cond)
+    
+    @staticmethod
+    def get_user_by_email(email):
+        """Fetches a user by their email"""
+        cond = f"email = '{email}'"
+        return db.get_user(cond)
+    
+    def update_user(self, email=None, full_name=None):
+        """Updates user information"""
+        updates = {}
+        
+        if email:
+            updates['email'] = email
+        
+        if full_name:
+            updates['full_name'] = full_name
+        
+        if updates:
+            db.update_user(self.user_id, updates)
+    
+    def update_password(self, new_password):
+        """Updates user password"""
+        hashed_password = generate_password_hash(new_password)
+        db.update_user_password(self.user_id, hashed_password)
+    
+    def check_password(self, password):
+        """Checks if provided password matches stored hash"""
+        return check_password_hash(self.password_hash, password)
+
+
+class Student(User):
+    def __init__(self, *args):
+        super().__init__(*args[:6])  # Pass first 6 arguments to parent class
+        
+        # Student-specific attributes
+        if len(args) >= 8:
+            self.student_id = args[6]
+            self.program = args[7]
+            self.student_number = args[8] if len(args) > 8 else None
+    
+    @staticmethod
+    def create_student(username, password, email, full_name, program, student_number=None):
+        # Create base user with 'student' role
+        user = User.create_user(username, password, email, full_name, 'student')
+        
+        if user:
+            # Add student-specific information
+            student_info = {
+                'program': program,
+                'student_number': student_number
+            }
+            db.add_student(user.user_id, student_info)
+            
+            # Return complete student object
+            return Student.get_student_by_user_id(user.user_id)
+        
+        return None
+    
+    @staticmethod
+    def get_student_by_user_id(user_id):
+        """Fetches a student by their user ID"""
+        return db.get_student(user_id)
+
+
+class Teacher(User):
+    def __init__(self, user_id=None, username=None, password_hash=None, email=None, full_name=None, role=None, teacher_id=None, department=None, office_location=None):
+        # Initialize base User attributes
+        super().__init__(user_id, username, password_hash, email, full_name, role)
+        
+        # Teacher-specific attributes
+        self.teacher_id = teacher_id
+        self.department = department
+        self.office_location = office_location
+    
+    @staticmethod
+    def create_teacher(username, password, email, full_name, department, office_location=None):
+        # Create base user with 'teacher' role
+        user = User.create_user(username, password, email, full_name, 'teacher')
+        
+        if user:
+            # Add teacher-specific information
+            teacher_info = {
+                'department': department,
+                'office_location': office_location
+            }
+            db.add_teacher(user.user_id, teacher_info)
+            
+            # Return complete teacher object
+            return Teacher.get_teacher_by_user_id(user.user_id)
+        
+        return None
+    
+    @staticmethod
+    def get_teacher_by_user_id(user_id):
+        """Fetches a teacher by their user ID"""
+        return db.get_teacher(user_id)
+
+
+# Admin User Classes
+class AdminUser(User):
+    @staticmethod
+    def get_admin_by_user_id(user_id):
+        """Fetches an admin by their user ID"""
+        user = User.get_user_by_id(user_id)
+        if user and user.role == 'admin_user':
+            return user
+        return None
+        
+class AdminAppointment(User):
+    @staticmethod
+    def get_admin_by_user_id(user_id):
+        """Fetches an appointment admin by their user ID"""
+        user = User.get_user_by_id(user_id)
+        if user and user.role == 'admin_appoint':
+            return user
+        return None
+        
+class SuperUser(User):
+    @staticmethod
+    def get_admin_by_user_id(user_id):
+        """Fetches a superuser by their user ID"""
+        user = User.get_user_by_id(user_id)
+        if user and user.role == 'superuser':
+            return user
+        return None
