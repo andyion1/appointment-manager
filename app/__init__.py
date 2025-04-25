@@ -11,11 +11,6 @@ from config import Config
 def create_app():
     
     app = Flask(__name__)
-<<<<<<< HEAD
-    
-=======
-
->>>>>>> 6ed8fded09bf446685bca56de2915c1f28809328
     # Load configuration
     app.config.from_object(Config)
     
