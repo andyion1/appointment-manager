@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% from "_field_error.html" import render_field %}
+
+{% block title %}Register - Office Hour Scheduler{% endblock %}
+
+
+{% block content %}
+<section class="auth-container">
+    <h2>Create an Account</h2>
+    <form method="POST" action="{{ url_for('user.register') }}">
+        {{ form.hidden_tag() }}
+        
+        <section class="form-section">
+            {{ form.username.label(class="form-label") }}
+            {{ form.username(class="form-control") }}
+            {% if form.username.errors %}
+                <ul class="errors">
+                    {% for error in form.username.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </section>
+        
+        <section class="form-section">
+            {{ form.email.label(class="form-label") }}
+            {{ form.email(class="form-control") }}
+            {% if form.email.errors %}
+                <ul class="errors">
+                    {% for error in form.email.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </section>
+        
+        <section class="form-section">
+            {{ form.full_name.label(class="form-label") }}
+            {{ form.full_name(class="form-control") }}
+            {% if form.full_name.errors %}
+                <ul class="errors">
+                    {% for error in form.full_name.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </section>
+        
+        <section class="form-section">
+            {{ form.password.label(class="form-label") }}
+            {{ form.password(class="form-control") }}
+            {% if form.password.errors %}
+                <ul class="errors">
+                    {% for error in form.password.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </section>
+        
+        <section class="form-section">
+            {{ form.confirm_password.label(class="form-label") }}
+            {{ form.confirm_password(class="form-control") }}
+            {% if form.confirm_password.errors %}
+                <ul class="errors">
+                    {% for error in form.confirm_password.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </section>
+        
+        <section class="form-section">
+            {{ form.role.label(class="form-label") }}
+            {{ form.role(class="form-control") }}
+            {% if form.role.errors %}
+                <ul class="errors">
+                    {% for error in form.role.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </section>
+        
+        <section class="form-section">
+            {{ form.submit(class="submit-button primary-button") }}
+        </section>
+    </form>
+    
+    <section class="auth-links">
+        <p>Already have an account? <a href="{{ url_for('user.login') }}">Login</a></p>
+    </section>
+</section>
+{% endblock %}
