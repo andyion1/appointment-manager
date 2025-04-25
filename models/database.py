@@ -76,7 +76,29 @@ class Database:
  # ===========================================================================
 # ----------------DML  (CRUD) queries (retrieve, insert, update, delete -----
 # ---------------------------------------------------------------------------
+    def add_user(self, user):
+        '''Add a user to the DB for the given User object (tuple)'''
+        qry = f"INSERT INTO USER_PROJ (username, password, age, specialty, fname, lname) VALUES ('{user.username}', '{user.password}', {user.email}, '{user.full_name}', '{user.role}')"
+        with self.get_cursor() as curr:
+            try:
+                curr.execute(qry)
+                self.__connect()
+            except Exception as e:
+                print(e)
 
+    def get_user(self, cond):
+        '''Returns a User object based on the provided user_id'''
+        from app.user.user import User
+        qry = f"SELECT * FROM USER_PROJ WHERE {cond}"
+        with self.get_cursor() as curr:
+            try:
+                curr.execute(qry)
+                user_data = curr.fetchone()
+                if user_data:
+                    return User(*user_data)
+                return None
+            except Exception as e:
+                print(e)
 
 
 # ===========================================================================

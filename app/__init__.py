@@ -6,6 +6,7 @@ from .appointment.routes import appointment
 from .report.routes import report
 from .user.routes import user
 from .student.routes import student
+from .user.user import User
 from config import Config
 
 def create_app():
@@ -19,7 +20,7 @@ def create_app():
     login_manager.init_app(app)
     @login_manager.user_loader
     def load_user(user_id):
-        return None
+        return User.get_user_by_id(user_id)
     
     # Register blueprints
     app.register_blueprint(main)
