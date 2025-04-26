@@ -18,7 +18,7 @@ def about():
 def form():
     form = AppointmentForm()
     teachers = db.get_teachers()
-    form.teacher.choices = [(t.user_id, f"{t.full_name} ({t.department})") for t in teachers]
+    form.teacher.choices = [(t.user_id, f"{t.full_name}") for t in teachers]
     if form.validate_on_submit():
         new_appointment = Appointment(
             current_user.id,
