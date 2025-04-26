@@ -1,7 +1,9 @@
 from flask import render_template, redirect, url_for, Blueprint, flash, request
+from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash
 import os
 from datetime import datetime
+from .user import User
 
 from .forms import LoginForm, RegistrationForm
 
@@ -14,8 +16,11 @@ def login():
     if request.method == 'POST':
         if form.validate_on_submit():
             # This would be replaced with actual database query once implemented
-            flash('Login functionality will be implemented in future phases.', 'info')
-            return redirect(url_for('main.home'))
+            user_login = User.get_user_by_username(form.username.data)
+            if user_login.check_password(form.password.data):
+                login_user(user_login)
+                flash(f'Welcom back, {user_login.full_name}. You have been successfully logged in.', 'info')
+                return redirect(url_for('main.home'))
         else:
             # If form validation fails, display errors
             flash('Login failed. Please check the form errors.', 'danger')
@@ -30,8 +35,10 @@ def register():
             try:
                 # This would be replaced with actual database insert once implemented
                 # For now, just show that the form was successfully submitted
-                flash(f'Registration successful! User {form.username.data} can now log in.', 'success')
-                return redirect(url_for('user.login'))
+                user_data = User.create_user(form.username.data, form.password.data, form.email.data, form.full_name.data, form.role.data)
+                if user_data:
+                    flash(f'Registration successful! User {form.username.data} can now log in.', 'success')
+                    return redirect(url_for('user.login'))
                 
             except Exception as e:
                 flash(f'An error occurred during registration.', 'danger')
@@ -43,6 +50,7 @@ def register():
 
 @user.route("/logout")
 def logout():
+    logout_user()
     flash('You have been logged out.', 'info')
     return redirect(url_for('main.home'))
 
