@@ -13,7 +13,7 @@ def home():
 def about():
     return render_template("appointment.html", logo="static/images/logo.PNG", css="static/css/style.css")
 
-@appointment.route("/createAppointment")
+@appointment.route("/bookAppointment")
 def form():
     form = AppointmentForm()
     
