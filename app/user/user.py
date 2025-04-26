@@ -40,7 +40,18 @@ class User(UserMixin):
         
         # Add user to database
         db.add_user(user)
+        role_user = db.get_user(cond)
+        User.create_role(role_user)
         return user
+    
+    @staticmethod
+    def create_role(user):
+        if user:
+            if user.role == 'student':
+                db.add_teacher(user)
+            elif user.role == 'teacher':
+                db.add_student(user)
+       
     
     @staticmethod
     def get_user_by_id(user_id):

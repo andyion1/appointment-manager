@@ -2,6 +2,7 @@ from flask import render_template, redirect, url_for, Blueprint
 from app.appointment.forms import AppointmentForm
 from flask_login import current_user, login_required
 from models.data_classes import Appointment
+from models.database import db
 
 appointment = Blueprint("appointment", __name__, template_folder='templates')
 
@@ -16,7 +17,8 @@ def about():
 @appointment.route("/bookAppointment")
 def form():
     form = AppointmentForm()
-    
+    teachers = db.get_teachers()
+    form.teacher.choices = [(t.user_id, f"{t.full_name} ({t.department})") for t in teachers]
     if form.validate_on_submit():
         new_appointment = Appointment(
             current_user.id,
