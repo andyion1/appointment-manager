@@ -78,7 +78,56 @@ class Database:
 # ---------------------------------------------------------------------------
 
 
+    def add_user(self, user):
+        '''Add a user to the DB for the given User object (tuple)'''
+        qry = f"INSERT INTO USER_PROJ (username, password_hash, email, full_name, role) VALUES ('{user.username}', '{user.password_hash}', '{user.email}', '{user.full_name}', '{user.role}')"
+        with self.get_cursor() as curr:
+            try:
+                curr.execute(qry)
+                self.__connect()
+            except Exception as e:
+                print(e)
 
+    def get_user(self, cond):
+        '''Returns a User object based on the provided user_id'''
+        from app.user.user import User
+        qry = f"SELECT * FROM USER_PROJ WHERE {cond}"
+        with self.get_cursor() as curr:
+            try:
+                curr.execute(qry)
+                user_data = curr.fetchone()
+                if user_data:
+                    return User(*user_data)
+                return None
+            except Exception as e:
+                print(e)
+
+    def add_teacher(self, teacher):
+        '''Add a teacher to the DB for the given Teacher object (tuple)'''
+        qry = f"INSERT INTO Teacher (user_id, department, office_location) VALUES ('{teacher.user_id}', '{teacher.department}', '{teacher.office_location})"
+        with self.get_cursor() as curr:
+            try:
+                curr.execute(qry)
+                self.__connect()
+            except Exception as e:
+                print(e)
+
+    def get_teachers(self):
+        '''Returns all teachers available'''
+        from app.user.user import User
+        qry = "SELECT * FROM USER_PROJ WHERE role = 'teacher'"
+        with self.get_cursor() as curr:
+            pdb.set_trace()
+            try:
+                curr.execute(qry)
+                teachers_data = curr.fetchall()
+                return [User(*row) for row in teachers_data] if teachers_data else []
+            except Exception as e:
+                print(e)
+            return []
+        
+    def add_student(self, student):
+        pass
 # ===========================================================================
 db = Database()
 
