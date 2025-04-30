@@ -17,10 +17,13 @@ def login():
         if form.validate_on_submit():
             # This would be replaced with actual database query once implemented
             user_login = User.get_user_by_username(form.username.data)
-            if user_login.check_password(form.password.data):
+            if user_login and user_login.check_password(form.password.data):
+                print("Before Login")
                 login_user(user_login)
+                print("After  Login")
                 flash(f'Welcom back, {user_login.full_name}. You have been successfully logged in.', 'info')
-                return redirect(url_for('main.home'))
+                print("After ")
+                return redirect(url_for('user.profile'))
         else:
             # If form validation fails, display errors
             flash('Login failed. Please check the form errors.', 'danger')
@@ -42,6 +45,7 @@ def register():
                 
             except Exception as e:
                 flash(f'An error occurred during registration.', 'danger')
+                print("Registration error:", e)
         else:
             # If form validation fails, display errors
             flash('Registration failed. Please check the form errors.', 'danger')

@@ -21,15 +21,15 @@ class User(UserMixin):
     def create_user(username, password, email, full_name, role):
         """Creates a new user in the database"""
         # Check if username already exists
-        cond = f"username = '{username}'"
-        existing_user = db.get_user(cond)
+        username_cond = f"username = '{username}'"
+        existing_user = db.get_user(username_cond)
         if existing_user:
             flash("This username is already taken.", "danger")
             return None
         
         # Check if email already exists
-        cond = f"email = '{email}'"
-        existing_email = db.get_user(cond)
+        email_cond = f"email = '{email}'"
+        existing_email = db.get_user(email_cond)
         if existing_email:
             flash("This email is already registered.", "danger")
             return None
@@ -40,16 +40,19 @@ class User(UserMixin):
         
         # Add user to database
         db.add_user(user)
-        role_user = db.get_user(cond)
-        User.create_role(role_user)
+        role_user = db.get_user(username_cond)
+        if role_user:
+            User.create_role(role_user)
+        else:
+            flash("User was added but could not assign role.", "warning")
         return user
     
     @staticmethod
     def create_role(user):
         if user:
-            if user.role == 'student':
+            if user.role == 'teacher':
                 db.add_teacher(user)
-            elif user.role == 'teacher':
+            elif user.role == 'student':
                 db.add_student(user)
        
     
