@@ -63,18 +63,7 @@ class User(UserMixin):
         return db.get_user(cond)
     
     @staticmethod
-    def get_user_by_username(username):
-        """Fetches a user by their username"""
-        cond = f"username = '{username}'"
-        return db.get_user(cond)
-    
-    @staticmethod
-    def get_user_by_email(email):
-        """Fetches a user by their email"""
-        cond = f"email = '{email}'"
-        return db.get_user(cond)
-    
-    def update_user(self, email=None, full_name=None):
+    def update_user(id, email=None, full_name=None):
         """Updates user information"""
         updates = {}
         
@@ -85,7 +74,19 @@ class User(UserMixin):
             updates['full_name'] = full_name
         
         if updates:
-            db.update_user(self.user_id, updates)
+            db.update_user(id, updates)   
+    
+    @staticmethod
+    def get_user_by_username(username):
+        """Fetches a user by their username"""
+        cond = f"username = '{username}'"
+        return db.get_user(cond)
+    
+    @staticmethod
+    def get_user_by_email(email):
+        """Fetches a user by their email"""
+        cond = f"email = '{email}'"
+        return db.get_user(cond)
     
     def update_password(self, new_password):
         """Updates user password"""

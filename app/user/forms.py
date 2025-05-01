@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, SelectField
+from wtforms import EmailField, StringField, PasswordField, SubmitField, SelectField
 from wtforms.validators import DataRequired, Length, EqualTo
 
 class LoginForm(FlaskForm):
@@ -64,3 +64,13 @@ class RegistrationForm(FlaskForm):
     ])
     
     submit = SubmitField('Register')
+class ProfileForm(FlaskForm):
+    full_name = StringField('fname', validators=[
+        DataRequired(),
+        Length(min=3, max=25)
+    ])
+    email = EmailField('email', validators=[
+        DataRequired(),
+        Length(min=3, max=25)
+    ])
+    submit = SubmitField('Update')
