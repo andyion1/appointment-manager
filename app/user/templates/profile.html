@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
+<section id="userInfo">
 <li>Username: {{ current_user.username }}</li>
 <li>Name: {{ current_user.full_name }}</li>
 <li>Email: {{ current_user.email }}</li>
