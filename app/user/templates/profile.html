@@ -12,7 +12,7 @@
 </section>
 <section class="auth-container">
     <legend>Edit Profile</legend>
-    <form method="post" enctype="multipart/form-data" novalidate>
+    <form method="post" enctype="multipart/form-data" novalidate id="uploadForm" action="{{ url_for('user.profile') }}">
         {{ form.hidden_tag() }}
         <fieldset>
             <section class="form-section">
@@ -38,8 +38,9 @@
                 {% endif %}
             </section>
             <section class="form-section">
-                {{ form.user_image.label(class="form-label") }}
-                {{ form.user_image(class="form-control") }}
+                <label for="dropbox" class="form-label">{{ form.user_image.label.text }}</label>
+                <div id="dropbox" class="dropbox">Drag and drop a png, jpg or jpeg file here or click to upload</div>
+                {{ form.user_image(class="form-control", style="display:none;") }}
                 {% if form.user_image.errors %}
                     <ul class="errors">
                         {% for error in form.user_image.errors %}
