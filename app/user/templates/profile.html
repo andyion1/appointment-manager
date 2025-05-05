@@ -1,7 +1,21 @@
 {% extends "base.html" %}
-{% block nav %}
 
-{% endblock %}
 {% block content %}
+<li>Username: {{ current_user.username }}</li>
+<li>Name: {{ current_user.full_name }}</li>
+<li>Email: {{ current_user.email }}</li>
+<li>Role: {{ current_user.role }}</li>
+<section class="auth-container">
+    <legend>Edit Profile</legend>
+    <form method="post" novalidate>
+        {{ form.hidden_tag() }}
+        <fieldset>
+            <section class="form-section">
+                {{ form.full_name }}
+                {{ form.email }}
+            </section>
+            {{ form.submit(class="btn btn-primary") }}
+        </fieldset>
+</section>
 
 {% endblock %}

@@ -5,7 +5,7 @@ import os
 from datetime import datetime
 from .user import User
 
-from .forms import LoginForm, RegistrationForm
+from .forms import LoginForm, RegistrationForm, ProfileForm
 
 # Define the blueprint with the correct name
 user = Blueprint("user", __name__, template_folder="templates", static_folder="static")
@@ -58,9 +58,15 @@ def logout():
     flash('You have been logged out.', 'info')
     return redirect(url_for('main.home'))
 
-@user.route("/profile")
+@user.route("/profile", methods=['GET', 'POST'])
 def profile():
-    return render_template("profile.html")
+    form = ProfileForm()
+    if form.validate_on_submit():
+        User.update_user(current_user.user_id,form.email.data, form.full_name.data)
+        flash(f" updated {request.form['full_name']} with success !", 'success')
+        return redirect(url_for('user.profile'))
+    return render_template('profile.html', form=form, user=user)
+
 
 @user.route("/users")
 def users():
