@@ -297,20 +297,30 @@ footer {
     border: 3px solid rgb(173, 191, 230);
     border-radius: 4px;
     background-color: rgb(173, 223, 230);
-    text-align: center;
-    list-style-type: none;
+    display: flex;
+    flex-direction: row; /* switch from column to row for side-by-side layout */
+    align-items: center;
+    justify-content: center;
+    gap: 50px; /* spacing between image and text */
     font-size: 1.2rem;
     font-weight: 600;
-    display: flex;
-    flex-direction: column;
-    align-items: center; 
+    text-align: left; /* so text isn't centered awkwardly */
 }
+
 #userInfo li {
     margin-bottom: 10px;
     border: 4px solid rgb(173, 191, 230);
-    padding: 1px;
-    padding-left: none;
+    padding: 4px 10px;
     background-color: rgb(230, 173, 206);
     border-radius: 10px;
+    list-style: none;
+}
+
+#profile-pic {
+    width: 200px;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
 }
 

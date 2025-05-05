@@ -1,6 +1,7 @@
 from flask_wtf import FlaskForm
-from wtforms import EmailField, StringField, PasswordField, SubmitField, SelectField
+from wtforms import EmailField, FileField, StringField, PasswordField, SubmitField, SelectField
 from wtforms.validators import DataRequired, Length, EqualTo
+from flask_wtf.file import FileRequired, FileAllowed
 
 class LoginForm(FlaskForm):
     username = StringField('Username', validators=[
@@ -65,12 +66,17 @@ class RegistrationForm(FlaskForm):
     
     submit = SubmitField('Register')
 class ProfileForm(FlaskForm):
-    full_name = StringField('fname', validators=[
+    full_name = StringField('Enter New Full Name', validators=[
         DataRequired(),
         Length(min=3, max=25)
     ])
-    email = EmailField('email', validators=[
+    email = EmailField('Enter New Email', validators=[
         DataRequired(),
         Length(min=3, max=25)
     ])
+    user_image = FileField('Upload New Image Profile Picture', validators=[
+        FileRequired(),
+        FileAllowed(['png', 'jpg', 'jpeg'], 'Only image files are allowed!')
+    ])
+
     submit = SubmitField('Update')

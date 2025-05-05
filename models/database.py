@@ -102,7 +102,7 @@ class Database:
             except Exception as e:
                 print(e)
     def update_user(self, id, updates):
-        qry = f"update user_proj set full_name = '{updates['full_name']}', email = '{updates['email']}' where user_id = '{id}'"
+        qry = f"update user_proj set full_name = '{updates['full_name']}', email = '{updates['email']}', user_image = '{updates['user_image']}' where user_id = '{id}'"
         with self.__connection.cursor() as curr:
             try:
                 res = curr.execute(qry)
