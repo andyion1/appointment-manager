@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% from "_field_error.html" import render_field %}
+
+{% block title %}Complete Student Registration{% endblock %}
+
+{% block content %}
+<section class="auth-container">
+    <h2>Student Registration</h2>
+    <form method="POST" action="{{ url_for('user.student_register') }}">
+        {{ form.hidden_tag() }}
+
+        <!-- Hidden fields from step 1 -->
+        <input type="hidden" name="username" value="{{ user.username }}">
+        <input type="hidden" name="email" value="{{ user.email }}">
+        <input type="hidden" name="full_name" value="{{ user.full_name }}">
+        <input type="hidden" name="password" value="{{ user.password }}">
+        <input type="hidden" name="role" value="{{ user.role }}">
+
+
+        <section class="form-section">
+            {{ form.program.label(class="form-label") }}
+            {{ form.program(class="form-control") }}
+            {% if form.program.errors %}
+                <ul class="errors">
+                    {% for error in form.program.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </section>
+
+        <section class="form-section">
+            {{ form.student_number.label(class="form-label") }}
+            {{ form.student_number(class="form-control") }}
+            {% if form.student_number.errors %}
+                <ul class="errors">
+                    {% for error in form.student_number.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </section>
+
+        <section class="form-section">
+            {{ form.submit(class="submit-button primary-button") }}
+        </section>
+    </form>
+</section>
+{% endblock %}

@@ -136,7 +136,32 @@ class Database:
             return []
         
     def add_student(self, student):
-        pass
+        '''Add a student to the DB for the given Student object (tuple)'''
+        qry = f"""
+            INSERT INTO Student (user_id, program, student_number)
+            VALUES ('{student.user_id}', '{student.program}', '{student.student_number}')
+        """
+        with self.get_cursor() as curr:
+            try:
+                curr.execute(qry)
+                self.__connect()
+            except Exception as e:
+                print(e)
+
+    def get_student(self, cond):
+        '''Returns a Student object based on the provided condition'''
+        from app.user.user import Student
+        qry = f"SELECT * FROM Student WHERE {cond}"
+        with self.get_cursor() as curr:
+            try:
+                curr.execute(qry)
+                student_data = curr.fetchone()
+                if student_data:
+                    return Student(*student_data)
+                return None
+            except Exception as e:
+                print(e)
+                return None
 # ===========================================================================
 db = Database()
 
