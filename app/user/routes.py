@@ -3,10 +3,10 @@ from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash
 import os
 from datetime import datetime
-from .user import Student, User
+from .user import Student, Teacher, User
 import pdb
 
-from .forms import LoginForm, RegistrationForm, ProfileForm, StudentExtraForm
+from .forms import LoginForm, RegistrationForm, ProfileForm, StudentExtraForm, TeacherExtraForm
 
 # Define the blueprint with the correct name
 user = Blueprint("user", __name__, template_folder="templates", static_folder="static")
@@ -43,7 +43,7 @@ def register():
                     if form.role.data == 'student':
                         return render_template('studentregister.html',form=StudentExtraForm(),user=user_data)
                     elif form.role.data == 'teacher':
-                        return redirect(url_for('user.teacher_register'))
+                        return render_template('teacherregister.html',form=TeacherExtraForm(),user=user_data)
                 
             except Exception as e:
                 flash(f'An error occurred during registration.', 'danger')
@@ -72,6 +72,32 @@ def student_register():
         return redirect(url_for('user.login'))
 
     return render_template("studentregister.html", form=form,username=request.form.get('username', ''),email=request.form.get('email', ''),full_name=request.form.get('full_name', ''),password=request.form.get('password', ''))
+
+
+@user.route("/register/teacher", methods=['GET', 'POST'])
+def teacher_register():
+    form = TeacherExtraForm()
+
+    if form.validate_on_submit():
+        Teacher.create_teacher(
+            username=request.form['username'],
+            password=request.form['password'],
+            email=request.form['email'],
+            full_name=request.form['full_name'],
+            department=form.department.data,
+            office_location=form.office_location.data
+        )
+        flash("Teacher registered!", "success")
+        return redirect(url_for('user.login'))
+
+    return render_template(
+        "teacherregister.html",
+        form=form,
+        username=request.form.get('username', ''),
+        email=request.form.get('email', ''),
+        full_name=request.form.get('full_name', ''),
+        password=request.form.get('password', '')
+    )
 
 
 @user.route("/logout")

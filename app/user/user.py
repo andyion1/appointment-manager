@@ -139,26 +139,31 @@ class Teacher(User):
     
     @staticmethod
     def create_teacher(username, password, email, full_name, department, office_location=None):
-        # Create base user with 'teacher' role
         user = User.create_user(username, password, email, full_name, 'teacher')
-        
+
         if user:
-            # Add teacher-specific information
-            teacher_info = {
-                'department': department,
-                'office_location': office_location
-            }
-            db.add_teacher(user.user_id, teacher_info)
-            
-            # Return complete teacher object
+            teacher = Teacher(
+                user.user_id,
+                user.username,
+                user.password_hash,
+                user.email,
+                user.full_name,
+                user.role,
+                department,
+                office_location
+            )
+
+            db.add_teacher(teacher)
             return Teacher.get_teacher_by_user_id(user.user_id)
-        
+
         return None
+
     
     @staticmethod
     def get_teacher_by_user_id(user_id):
         """Fetches a teacher by their user ID"""
-        return db.get_teacher(user_id)
+        return db.get_teacher(f"user_id = {user_id}")
+
 
 
 # Admin User Classes

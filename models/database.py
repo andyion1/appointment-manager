@@ -135,6 +135,23 @@ class Database:
                 print(e)
             return []
         
+    def get_teacher(self, cond):
+        '''Returns a Teacher object based on the provided condition'''
+        from app.user.user import Teacher
+
+        qry = f"SELECT * FROM Teacher WHERE {cond}"
+        with self.get_cursor() as curr:
+            try:
+                curr.execute(qry)
+                teacher_data = curr.fetchone()
+                if teacher_data:
+                    return Teacher(*teacher_data)
+                return None
+            except Exception as e:
+                print("Error in get_teacher:", e)
+                return None
+
+        
     def add_student(self, student):
         '''Add a student to the DB for the given Student object (tuple)'''
         qry = f"""
