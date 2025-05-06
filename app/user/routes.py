@@ -39,7 +39,6 @@ def register():
             try:
                 user_data = User.create_user(form.username.data, form.password.data, form.email.data, form.full_name.data, form.role.data)
                 if user_data:
-                    pdb.set_trace()
                     if form.role.data == 'student':
                         return render_template('studentregister.html',form=StudentExtraForm(),user=user_data)
                     elif form.role.data == 'teacher':

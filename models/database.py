@@ -50,7 +50,6 @@ class Database:
     def __run_file(self, file_path):
         statement_parts = []
         with self.__connection.cursor() as cursor:
-            # pdb.set_trace()
             with open(file_path, 'r') as f:
                 for line in f:
                     if line[:2]=='--': continue
@@ -59,7 +58,6 @@ class Database:
                         statement = "".join( statement_parts).strip().rstrip(';')
                         if statement:
                             try:
-                                # pdb.set_trace()
                                 cursor.execute(statement)
                             except Exception as e:
                                 print(e)
@@ -126,7 +124,6 @@ class Database:
         from app.user.user import User
         qry = "SELECT * FROM USER_PROJ WHERE role = 'teacher'"
         with self.get_cursor() as curr:
-            pdb.set_trace()
             try:
                 curr.execute(qry)
                 teachers_data = curr.fetchall()
@@ -183,5 +180,4 @@ class Database:
 db = Database()
 
 if __name__ == '__main__':
-    # pdb.set_trace()
     db.run_sql_script('./models/database.sql')
