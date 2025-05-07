@@ -126,7 +126,6 @@ class Database:
         from app.user.user import User
         qry = "SELECT * FROM USER_PROJ WHERE role = 'teacher'"
         with self.get_cursor() as curr:
-            pdb.set_trace()
             try:
                 curr.execute(qry)
                 teachers_data = curr.fetchall()
@@ -134,6 +133,27 @@ class Database:
             except Exception as e:
                 print(e)
             return []
+    
+    def get_teacher(self, cond):
+        '''Returns a Teacher object based on a condition (e.g., teacher_id = 3)'''
+        from app.user.user import Teacher
+        qry = f"""
+            SELECT u.user_id, u.username, u.password_hash, u.email, u.full_name, u.role,
+                t.teacher_id, t.department, t.office_location
+            FROM USER_PROJ u
+            JOIN TEACHER t ON u.user_id = t.user_id
+            WHERE {cond}
+        """
+        with self.get_cursor() as curr:
+            try:
+                curr.execute(qry)
+                data = curr.fetchone()
+                if data:
+                    return Teacher(*data)
+                return None
+            except Exception as e:
+                print("get_teacher error:", e)
+                return None
         
     def add_student(self, student):
         pass

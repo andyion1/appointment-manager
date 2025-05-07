@@ -42,6 +42,7 @@
             <ul class="nav-section">
                 <li><a href="{{ url_for('main.home') }}">Home</a></li>
                 <li><a href="{{ url_for('main.about') }}">About</a></li>
+                <li><a href="{{ url_for('teacher.teachers') }}">View Teachers</a></li>
                 {% if not current_user.is_authenticated %}
                 <li><a href="{{ url_for('user.register') }}">Register</a></li>
                 <li><a href="{{ url_for('user.login') }}">Login</a></li>

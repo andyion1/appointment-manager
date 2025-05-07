@@ -6,6 +6,7 @@ from .appointment.routes import appointment
 from .report.routes import report
 from .user.routes import user
 from .student.routes import student
+from .teacher.routes import teacherBlueprint
 from .user.user import User
 from config import Config
 
@@ -28,5 +29,6 @@ def create_app():
     app.register_blueprint(report)
     app.register_blueprint(user)
     app.register_blueprint(student)
+    app.register_blueprint(teacherBlueprint)
     
     return app
