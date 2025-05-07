@@ -64,7 +64,6 @@ def register():
 def student_register():
     form = StudentExtraForm()
     user = session.get('user')
-    pdb.set_trace()
     if not user:
         return redirect(url_for('user.register'))
     

@@ -110,7 +110,6 @@ class Database:
 
 
     def add_teacher(self, teacher):
-        pdb.set_trace()
         '''Add a teacher to the DB from a Teacher object'''
         qry = """
             INSERT INTO TEACHER (user_id, department, office_location)

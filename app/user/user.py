@@ -139,7 +139,6 @@ class Teacher(User):
     @staticmethod
     def create_teacher(username, password, email, full_name, department, office_location=None):
         user = User.get_user_by_username(username)
-        pdb.set_trace()
         if user:
             teacher = Teacher(
                 user.user_id,
