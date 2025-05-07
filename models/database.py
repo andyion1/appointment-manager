@@ -110,27 +110,38 @@ class Database:
 
 
     def add_teacher(self, teacher):
-        '''Add a teacher to the DB for the given Teacher object (tuple)'''
-        qry = f"INSERT INTO Teacher (user_id, department, office_location) VALUES ('{teacher.user_id}', '{teacher.department}', '{teacher.office_location})"
+        pdb.set_trace()
+        '''Add a teacher to the DB from a Teacher object'''
+        qry = """
+            INSERT INTO TEACHER (user_id, department, office_location)
+            VALUES (%s, %s, %s)
+        """
         with self.get_cursor() as curr:
             try:
-                curr.execute(qry)
-                self.__connect()
+                curr.execute(qry, (teacher.user_id, teacher.department, teacher.office_location))
             except Exception as e:
-                print(e)
+                print("add_teacher error:", e)
 
     def get_teachers(self):
-        '''Returns all teachers available'''
-        from app.user.user import User
-        qry = "SELECT * FROM USER_PROJ WHERE role = 'teacher'"
+        '''Returns all teachers as Teacher objects'''
+        from app.user.user import Teacher  # adjust if Teacher is in another file
+
+        query = """
+            SELECT u.user_id, u.username, u.password_hash, u.email, u.full_name, u.role,
+                t.teacher_id, t.department, t.office_location
+            FROM USER_PROJ u
+            JOIN TEACHER t ON u.user_id = t.user_id
+            WHERE u.role = 'teacher'
+        """
         with self.get_cursor() as curr:
             try:
-                curr.execute(qry)
-                teachers_data = curr.fetchall()
-                return [User(*row) for row in teachers_data] if teachers_data else []
+                curr.execute(query)
+                data = curr.fetchall()
+                return [Teacher(*row) for row in data] if data else []
             except Exception as e:
-                print(e)
-            return []
+                print("get_teachers error:", e)
+                return []
+
         
     def get_teacher(self, cond):
         '''Returns a Teacher object based on the provided condition'''
@@ -150,17 +161,17 @@ class Database:
 
         
     def add_student(self, student):
-        '''Add a student to the DB for the given Student object (tuple)'''
-        qry = f"""
-            INSERT INTO Student (user_id, program, student_number)
-            VALUES ('{student.user_id}', '{student.program}', '{student.student_number}')
+        '''Add a student to the DB from a Student object'''
+        qry = """
+            INSERT INTO STUDENT (user_id, program, student_number)
+            VALUES (%s, %s, %s)
         """
         with self.get_cursor() as curr:
             try:
-                curr.execute(qry)
-                self.__connect()
+                curr.execute(qry, (student.user_id, student.program, student.student_number))
             except Exception as e:
-                print(e)
+                print("add_student error:", e)
+
 
     def get_student(self, cond):
         '''Returns a Student object based on the provided condition'''

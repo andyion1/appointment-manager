@@ -1,4 +1,4 @@
-from flask import flash
+from flask import flash, request
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from models.database import db
@@ -21,15 +21,13 @@ class User(UserMixin):
     def create_user(username, password, email, full_name, role):
         """Creates a new user in the database"""
         # Check if username already exists
-        username_cond = f"username = '{username}'"
-        existing_user = db.get_user(username_cond)
+        existing_user = User.get_user_by_username(username)
         if existing_user:
             flash("This username is already taken.", "danger")
             return None
         
         # Check if email already exists
-        email_cond = f"email = '{email}'"
-        existing_email = db.get_user(email_cond)
+        existing_email = User.get_user_by_email(email)
         if existing_email:
             flash("This email is already registered.", "danger")
             return None
@@ -40,6 +38,7 @@ class User(UserMixin):
         
         # Add user to database
         db.add_user(user)
+        user = User.get_user_by_username(username)
         return user
        
     
@@ -98,7 +97,7 @@ class Student(User):
     @staticmethod
     def create_student(username, password, email, full_name, program, student_number=None):
         # Create base user with 'student' role
-        user = User.create_user(username, password, email, full_name, 'student')
+        user = User.get_user_by_username(username)
 
         if user:
             # Create full student object using base user
@@ -139,8 +138,8 @@ class Teacher(User):
     
     @staticmethod
     def create_teacher(username, password, email, full_name, department, office_location=None):
-        user = User.create_user(username, password, email, full_name, 'teacher')
-
+        user = User.get_user_by_username(username)
+        pdb.set_trace()
         if user:
             teacher = Teacher(
                 user.user_id,
@@ -149,6 +148,7 @@ class Teacher(User):
                 user.email,
                 user.full_name,
                 user.role,
+                None,
                 department,
                 office_location
             )

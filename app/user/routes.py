@@ -1,4 +1,4 @@
-from flask import render_template, redirect, url_for, Blueprint, flash, request
+from flask import render_template, redirect, session, url_for, Blueprint, flash, request
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash
 import os
@@ -38,11 +38,18 @@ def register():
         if form.validate_on_submit():
             try:
                 user_data = User.create_user(form.username.data, form.password.data, form.email.data, form.full_name.data, form.role.data)
+                session['user'] = {
+                    'username': form.username.data,
+                    'password': form.password.data,
+                    'email': form.email.data,
+                    'full_name': form.full_name.data,
+                    'role': form.role.data
+                }
                 if user_data:
                     if form.role.data == 'student':
-                        return render_template('studentregister.html',form=StudentExtraForm(),user=user_data)
+                        return redirect(url_for('user.student_register'))
                     elif form.role.data == 'teacher':
-                        return render_template('teacherregister.html',form=TeacherExtraForm(),user=user_data)
+                        return redirect(url_for('user.teacher_register'))
                 
             except Exception as e:
                 flash(f'An error occurred during registration.', 'danger')
@@ -56,47 +63,46 @@ def register():
 @user.route("/register/student", methods=['GET', 'POST'])
 def student_register():
     form = StudentExtraForm()
-
+    user = session.get('user')
+    pdb.set_trace()
+    if not user:
+        return redirect(url_for('user.register'))
     
     if form.validate_on_submit():
         Student.create_student(
-            username=request.form['username'],
-            password=request.form['password'],
-            email=request.form['email'],
-            full_name=request.form['full_name'],
+            username=user['username'],
+            password=user['password'],
+            email=user['email'],
+            full_name=user['full_name'],
             program=form.program.data,
             student_number=form.student_number.data
         )
         flash("Student registered!", "success")
         return redirect(url_for('user.login'))
 
-    return render_template("studentregister.html", form=form,username=request.form.get('username', ''),email=request.form.get('email', ''),full_name=request.form.get('full_name', ''),password=request.form.get('password', ''))
+    return render_template("studentregister.html", form=form)
 
 
 @user.route("/register/teacher", methods=['GET', 'POST'])
 def teacher_register():
     form = TeacherExtraForm()
-
+    user = session.get('user')
+    if not user:
+        return redirect(url_for('user.register'))
+    
     if form.validate_on_submit():
         Teacher.create_teacher(
-            username=request.form['username'],
-            password=request.form['password'],
-            email=request.form['email'],
-            full_name=request.form['full_name'],
+            username=user['username'],
+            password=user['password'],
+            email=user['email'],
+            full_name=user['full_name'],
             department=form.department.data,
             office_location=form.office_location.data
         )
         flash("Teacher registered!", "success")
         return redirect(url_for('user.login'))
 
-    return render_template(
-        "teacherregister.html",
-        form=form,
-        username=request.form.get('username', ''),
-        email=request.form.get('email', ''),
-        full_name=request.form.get('full_name', ''),
-        password=request.form.get('password', '')
-    )
+    return render_template("teacherregister.html",form=form)
 
 
 @user.route("/logout")
