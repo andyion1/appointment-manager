@@ -59,6 +59,7 @@ def logout():
     return redirect(url_for('main.home'))
 
 @user.route("/profile", methods=['GET', 'POST'])
+@login_required
 def profile():
     form = ProfileForm()
     if form.validate_on_submit():
@@ -69,5 +70,6 @@ def profile():
 
 
 @user.route("/users")
+@login_required
 def users():
     return render_template("users.html")

@@ -4,17 +4,18 @@ from flask_login import current_user, login_required
 from models.data_classes import Appointment
 from models.database import db
 
-appointment = Blueprint("appointment", __name__, template_folder='templates')
+appointmentBlueprint = Blueprint("appointment", __name__, template_folder='templates')
 
-@appointment.route("/appointments")
-def home():
+@appointmentBlueprint.route("/appointments")
+def appointments():
     return render_template("appointments.html", logo="static/images/logo.PNG", css="static/css/style.css")
 
-@appointment.route("/appointment")
-def about():
+@appointmentBlueprint.route("/appointment")
+def appointment():
     return render_template("appointment.html", logo="static/images/logo.PNG", css="static/css/style.css")
 
-@appointment.route("/bookAppointment")
+@appointmentBlueprint.route("/bookAppointment")
+@login_required
 def form():
     form = AppointmentForm()
     teachers = db.get_teachers()
