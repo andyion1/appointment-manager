@@ -64,6 +64,17 @@ class RegistrationForm(FlaskForm):
     ])
     
     submit = SubmitField('Register')
+
+class StudentExtraForm(FlaskForm):
+    program = StringField("Program", validators=[DataRequired()])
+    student_number = StringField("Student Number", validators=[DataRequired()])
+    submit = SubmitField("Complete Registration")
+
+class TeacherExtraForm(FlaskForm):
+    department = StringField("Department", validators=[DataRequired()])
+    office_location = StringField("Office Location", validators=[DataRequired()])
+    submit = SubmitField("Complete Registration")
+
 class ProfileForm(FlaskForm):
     full_name = StringField('fname', validators=[
         DataRequired(),

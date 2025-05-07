@@ -50,7 +50,6 @@ class Database:
     def __run_file(self, file_path):
         statement_parts = []
         with self.__connection.cursor() as cursor:
-            # pdb.set_trace()
             with open(file_path, 'r') as f:
                 for line in f:
                     if line[:2]=='--': continue
@@ -59,7 +58,6 @@ class Database:
                         statement = "".join( statement_parts).strip().rstrip(';')
                         if statement:
                             try:
-                                # pdb.set_trace()
                                 cursor.execute(statement)
                             except Exception as e:
                                 print(e)
@@ -126,7 +124,6 @@ class Database:
         from app.user.user import User
         qry = "SELECT * FROM USER_PROJ WHERE role = 'teacher'"
         with self.get_cursor() as curr:
-            pdb.set_trace()
             try:
                 curr.execute(qry)
                 teachers_data = curr.fetchall()
@@ -135,11 +132,52 @@ class Database:
                 print(e)
             return []
         
+    def get_teacher(self, cond):
+        '''Returns a Teacher object based on the provided condition'''
+        from app.user.user import Teacher
+
+        qry = f"SELECT * FROM Teacher WHERE {cond}"
+        with self.get_cursor() as curr:
+            try:
+                curr.execute(qry)
+                teacher_data = curr.fetchone()
+                if teacher_data:
+                    return Teacher(*teacher_data)
+                return None
+            except Exception as e:
+                print("Error in get_teacher:", e)
+                return None
+
+        
     def add_student(self, student):
-        pass
+        '''Add a student to the DB for the given Student object (tuple)'''
+        qry = f"""
+            INSERT INTO Student (user_id, program, student_number)
+            VALUES ('{student.user_id}', '{student.program}', '{student.student_number}')
+        """
+        with self.get_cursor() as curr:
+            try:
+                curr.execute(qry)
+                self.__connect()
+            except Exception as e:
+                print(e)
+
+    def get_student(self, cond):
+        '''Returns a Student object based on the provided condition'''
+        from app.user.user import Student
+        qry = f"SELECT * FROM Student WHERE {cond}"
+        with self.get_cursor() as curr:
+            try:
+                curr.execute(qry)
+                student_data = curr.fetchone()
+                if student_data:
+                    return Student(*student_data)
+                return None
+            except Exception as e:
+                print(e)
+                return None
 # ===========================================================================
 db = Database()
 
 if __name__ == '__main__':
-    # pdb.set_trace()
     db.run_sql_script('./models/database.sql')
