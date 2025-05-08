@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h2>{{ teacher.full_name }}</h2>
+    <p><strong>Department:</strong> {{ teacher.department }}</p>
+    <p><strong>Office:</strong> {{ teacher.office_location }}</p>
+    <p><strong>Email:</strong> {{ teacher.email }}</p>
+{% endblock %}

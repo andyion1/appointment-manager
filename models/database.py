@@ -122,16 +122,15 @@ class Database:
                 print("add_teacher error:", e)
 
     def get_teachers(self):
-        '''Returns all teachers as Teacher objects'''
-        from app.user.user import Teacher  # adjust if Teacher is in another file
-
+        """Returns all teachers as Teacher objects"""
+        from app.user.user import Teacher
         query = """
-            SELECT u.user_id, u.username, u.password_hash, u.email, u.full_name, u.role,
+            SELECT u.user_id, u.username, u.password_hash, u.email, u.full_name, u.role, u.user_image,
                 t.teacher_id, t.department, t.office_location
             FROM USER_PROJ u
             JOIN TEACHER t ON u.user_id = t.user_id
             WHERE u.role = 'teacher'
-        """
+            """
         with self.get_cursor() as curr:
             try:
                 curr.execute(query)
@@ -141,23 +140,26 @@ class Database:
                 print("get_teachers error:", e)
                 return []
 
-        
     def get_teacher(self, cond):
-        '''Returns a Teacher object based on the provided condition'''
+        '''Returns a Teacher object based on a condition (e.g., teacher_id = 3)'''
         from app.user.user import Teacher
-
-        qry = f"SELECT * FROM Teacher WHERE {cond}"
+        qry = f"""
+            SELECT u.user_id, u.username, u.password_hash, u.email, u.full_name, u.role, u.user_image,
+                t.teacher_id, t.department, t.office_location
+            FROM USER_PROJ u
+            JOIN TEACHER t ON u.user_id = t.user_id
+            WHERE {cond}
+        """
         with self.get_cursor() as curr:
             try:
                 curr.execute(qry)
-                teacher_data = curr.fetchone()
-                if teacher_data:
-                    return Teacher(*teacher_data)
+                data = curr.fetchone()
+                if data:
+                    return Teacher(*data)
                 return None
             except Exception as e:
-                print("Error in get_teacher:", e)
+                print("get_teacher error:", e)
                 return None
-
         
     def add_student(self, student):
         '''Add a student to the DB from a Student object'''
