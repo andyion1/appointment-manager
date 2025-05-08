@@ -62,7 +62,7 @@ def logout():
 def profile():
     form = ProfileForm()
     if form.validate_on_submit():
-        User.update_user(current_user.user_id,form.email.data, form.full_name.data)
+        User.update_user(current_user.user_id, form.email.data, form.full_name.data)
         flash(f" updated {request.form['full_name']} with success !", 'success')
         return redirect(url_for('user.profile'))
     return render_template('profile.html', form=form, user=user)
