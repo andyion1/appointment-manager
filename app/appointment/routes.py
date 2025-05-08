@@ -3,6 +3,7 @@ from app.appointment.forms import AppointmentForm
 from flask_login import current_user, login_required
 from models.data_classes import Appointment
 from models.database import db
+import pdb
 
 appointment = Blueprint("appointment", __name__, template_folder='templates')
 
@@ -18,7 +19,8 @@ def about():
 def form():
     form = AppointmentForm()
     teachers = db.get_teachers()
-    form.teacher.choices = [(t.user_id, f"{t.full_name}") for t in teachers]
+    teachers = sorted(db.get_teachers(), key=lambda t: t.department.lower() if t.department else "")
+    form.teacher.choices = [(t.user_id, f"{t.department} - {t.full_name}") for t in teachers]
     if form.validate_on_submit():
         new_appointment = Appointment(
             current_user.id,
