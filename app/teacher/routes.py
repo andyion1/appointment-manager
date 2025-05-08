@@ -8,7 +8,7 @@ def teacher(teacher_id):
     teacher = db.get_teacher(f"teacher_id = {teacher_id}")
     if not teacher:
         abort(404)
-    return render_template("teacher.html", logo="static/images/logo.PNG", css="static/css/style.css")
+    return render_template("teacher.html", logo="static/images/logo.PNG", css="static/css/style.css", teacher=teacher)
 
 @teacherBlueprint.route("/teachers")
 def teachers():
