@@ -12,7 +12,7 @@ class User(UserMixin):
         self.email = args[3]
         self.full_name = args[4]
         self.role = args[5]
-        self.user_image = args[6]
+        self.user_image = args[6]  if len(args) > 6 else None
     
     
     def get_id(self):
