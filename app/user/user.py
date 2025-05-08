@@ -1,4 +1,4 @@
-from flask import flash
+from flask import flash, request
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from models.database import db
@@ -12,6 +12,7 @@ class User(UserMixin):
         self.email = args[3]
         self.full_name = args[4]
         self.role = args[5]
+        self.user_image = args[6]
     
     
     def get_id(self):
@@ -21,15 +22,13 @@ class User(UserMixin):
     def create_user(username, password, email, full_name, role):
         """Creates a new user in the database"""
         # Check if username already exists
-        username_cond = f"username = '{username}'"
-        existing_user = db.get_user(username_cond)
+        existing_user = User.get_user_by_username(username)
         if existing_user:
             flash("This username is already taken.", "danger")
             return None
         
         # Check if email already exists
-        email_cond = f"email = '{email}'"
-        existing_email = db.get_user(email_cond)
+        existing_email = User.get_user_by_email(email)
         if existing_email:
             flash("This email is already registered.", "danger")
             return None
@@ -40,20 +39,8 @@ class User(UserMixin):
         
         # Add user to database
         db.add_user(user)
-        role_user = db.get_user(username_cond)
-        if role_user:
-            User.create_role(role_user)
-        else:
-            flash("User was added but could not assign role.", "warning")
+        user = User.get_user_by_username(username)
         return user
-    
-    @staticmethod
-    def create_role(user):
-        if user:
-            if user.role == 'teacher':
-                db.add_teacher(user)
-            elif user.role == 'student':
-                db.add_student(user)
        
     
     @staticmethod
@@ -111,25 +98,33 @@ class Student(User):
     @staticmethod
     def create_student(username, password, email, full_name, program, student_number=None):
         # Create base user with 'student' role
-        user = User.create_user(username, password, email, full_name, 'student')
-        
+        user = User.get_user_by_username(username)
+
         if user:
-            # Add student-specific information
-            student_info = {
-                'program': program,
-                'student_number': student_number
-            }
-            db.add_student(user.user_id, student_info)
-            
-            # Return complete student object
+            # Create full student object using base user
+            student = Student(
+                user.user_id,
+                user.username,
+                user.password_hash,
+                user.email,
+                user.full_name,
+                user.role,
+                program,
+                student_number
+            )
+
+            # Add to DB
+            db.add_student(student)
+
+            # Return complete student object (in case the DB autogenerates any fields)
             return Student.get_student_by_user_id(user.user_id)
-        
+
         return None
-    
+
     @staticmethod
     def get_student_by_user_id(user_id):
         """Fetches a student by their user ID"""
-        return db.get_student(user_id)
+        return db.get_student(f"user_id = {user_id}")
 
 
 class Teacher(User):
@@ -144,26 +139,31 @@ class Teacher(User):
     
     @staticmethod
     def create_teacher(username, password, email, full_name, department, office_location=None):
-        # Create base user with 'teacher' role
-        user = User.create_user(username, password, email, full_name, 'teacher')
-        
+        user = User.get_user_by_username(username)
         if user:
-            # Add teacher-specific information
-            teacher_info = {
-                'department': department,
-                'office_location': office_location
-            }
-            db.add_teacher(user.user_id, teacher_info)
-            
-            # Return complete teacher object
+            teacher = Teacher(
+                user.user_id,
+                user.username,
+                user.password_hash,
+                user.email,
+                user.full_name,
+                user.role,
+                None,
+                department,
+                office_location
+            )
+
+            db.add_teacher(teacher)
             return Teacher.get_teacher_by_user_id(user.user_id)
-        
+
         return None
+
     
     @staticmethod
     def get_teacher_by_user_id(user_id):
         """Fetches a teacher by their user ID"""
-        return db.get_teacher(user_id)
+        return db.get_teacher(f"user_id = {user_id}")
+
 
 
 # Admin User Classes

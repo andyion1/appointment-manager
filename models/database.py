@@ -50,7 +50,6 @@ class Database:
     def __run_file(self, file_path):
         statement_parts = []
         with self.__connection.cursor() as cursor:
-            # pdb.set_trace()
             with open(file_path, 'r') as f:
                 for line in f:
                     if line[:2]=='--': continue
@@ -59,7 +58,6 @@ class Database:
                         statement = "".join( statement_parts).strip().rstrip(';')
                         if statement:
                             try:
-                                # pdb.set_trace()
                                 cursor.execute(statement)
                             except Exception as e:
                                 print(e)
@@ -102,7 +100,7 @@ class Database:
             except Exception as e:
                 print(e)
     def update_user(self, id, updates):
-        qry = f"update user_proj set full_name = '{updates['full_name']}', email = '{updates['email']}' where user_id = '{id}'"
+        qry = f"update user_proj set full_name = '{updates['full_name']}', email = '{updates['email']}', user_image = '{updates['user_image']}' where user_id = '{id}'"
         with self.__connection.cursor() as curr:
             try:
                 res = curr.execute(qry)
@@ -112,28 +110,37 @@ class Database:
 
 
     def add_teacher(self, teacher):
-        '''Add a teacher to the DB for the given Teacher object (tuple)'''
-        qry = f"INSERT INTO Teacher (user_id, department, office_location) VALUES ('{teacher.user_id}', '{teacher.department}', '{teacher.office_location})"
+        '''Add a teacher to the DB from a Teacher object'''
+        qry = """
+            INSERT INTO TEACHER (user_id, department, office_location)
+            VALUES (%s, %s, %s)
+        """
         with self.get_cursor() as curr:
             try:
-                curr.execute(qry)
-                self.__connect()
+                curr.execute(qry, (teacher.user_id, teacher.department, teacher.office_location))
             except Exception as e:
-                print(e)
+                print("add_teacher error:", e)
 
     def get_teachers(self):
-        '''Returns all teachers available'''
-        from app.user.user import User
-        qry = "SELECT * FROM USER_PROJ WHERE role = 'teacher'"
+        '''Returns all teachers as Teacher objects'''
+        from app.user.user import Teacher  # adjust if Teacher is in another file
+
+        query = """
+            SELECT u.user_id, u.username, u.password_hash, u.email, u.full_name, u.role,
+                t.teacher_id, t.department, t.office_location
+            FROM USER_PROJ u
+            JOIN TEACHER t ON u.user_id = t.user_id
+            WHERE u.role = 'teacher'
+        """
         with self.get_cursor() as curr:
             try:
-                curr.execute(qry)
-                teachers_data = curr.fetchall()
-                return [User(*row) for row in teachers_data] if teachers_data else []
+                curr.execute(query)
+                data = curr.fetchall()
+                return [Teacher(*row) for row in data] if data else []
             except Exception as e:
-                print(e)
-            return []
-    
+                print("get_teachers error:", e)
+                return []
+
     def get_teacher(self, cond):
         '''Returns a Teacher object based on a condition (e.g., teacher_id = 3)'''
         from app.user.user import Teacher
@@ -156,10 +163,34 @@ class Database:
                 return None
         
     def add_student(self, student):
-        pass
+        '''Add a student to the DB from a Student object'''
+        qry = """
+            INSERT INTO STUDENT (user_id, program, student_number)
+            VALUES (%s, %s, %s)
+        """
+        with self.get_cursor() as curr:
+            try:
+                curr.execute(qry, (student.user_id, student.program, student.student_number))
+            except Exception as e:
+                print("add_student error:", e)
+
+
+    def get_student(self, cond):
+        '''Returns a Student object based on the provided condition'''
+        from app.user.user import Student
+        qry = f"SELECT * FROM Student WHERE {cond}"
+        with self.get_cursor() as curr:
+            try:
+                curr.execute(qry)
+                student_data = curr.fetchone()
+                if student_data:
+                    return Student(*student_data)
+                return None
+            except Exception as e:
+                print(e)
+                return None
 # ===========================================================================
 db = Database()
 
 if __name__ == '__main__':
-    # pdb.set_trace()
     db.run_sql_script('./models/database.sql')
