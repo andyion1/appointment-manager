@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% from "_field_error.html" import render_field %}
+
+{% block title %}Complete Teacher Registration{% endblock %}
+
+{% block content %}
+<section class="auth-container">
+    <h2>Teacher Registration</h2>
+    <form method="POST" action="{{ url_for('user.teacher_register') }}">
+        {{ form.hidden_tag() }}
+        <section class="form-section">
+            {{ form.department.label(class="form-label") }}
+            {{ form.department(class="form-control") }}
+            {% if form.department.errors %}
+                <ul class="errors">
+                    {% for error in form.department.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </section>
+
+        <section class="form-section">
+            {{ form.office_location.label(class="form-label") }}
+            {{ form.office_location(class="form-control") }}
+            {% if form.office_location.errors %}
+                <ul class="errors">
+                    {% for error in form.office_location.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </section>
+
+        <section class="form-section">
+            {{ form.submit(class="submit-button primary-button") }}
+        </section>
+    </form>
+</section>
+{% endblock %}

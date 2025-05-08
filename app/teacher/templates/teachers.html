@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block title %}View Teachers{% endblock %}
+
+{% block content %}
+<h2>Our Teachers</h2>
+<p>Click a teacher to learn more about their department and office location.</p>
+
+<ul class="teacher-list">
+    {% for teacher in teachers %}
+        <li>
+            <a href="{{ url_for('teacher.teacher', teacher_id=teacher.teacher_id) }}">
+                {{ teacher.full_name }} - {{ teacher.department }}
+            </a>
+        </li>
+    {% else %}
+        <li>No teachers available.</li>
+    {% endfor %}
+</ul>
+{% endblock %}

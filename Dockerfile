@@ -9,7 +9,7 @@ ENV PYTHONUNBUFFERED=1
 # Database
 ENV DATABASE_NAME='db_proj_'
 ENV DATABASE_USER=
-ENV DATABASE_HOST='cspostgres.dawsoncollege.qc.ca'
+ENV DATABASE_HOST='dc303.dawsoncollege.qc.ca'
 ENV DATABASE_PASSWORD=
 ENV DATABASE_PORT='5432'
 

@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>{% block title %}Student-Teacher Office Hour Scheduler{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles/style.css') }}">
+    <script src="{{ url_for('static', filename='js/dropbox.js') }}"></script>
     {% block extra_css %}{% endblock %}
 </head>
 <body>
@@ -13,8 +14,13 @@
             <ul class="nav-links">
                 <li><a href="{{ url_for('main.home') }}">Home</a></li>
                 <li><a href="{{ url_for('main.about') }}">About</a></li>
+                {% if not current_user.is_authenticated %}
                 <li><a href="{{ url_for('user.register') }}">Register</a></li>
                 <li><a href="{{ url_for('user.login') }}">Login</a></li>
+                {% endif %}
+                {% if current_user.is_authenticated %}
+                <li><a href="{{ url_for('user.logout') }}">Logout</a></li>
+                {% endif %}
             </ul>
         </div>
     </nav>
@@ -33,22 +39,28 @@
     
     <div class="page-container">
         <nav id="vertical">
-           <!-- Not set up yet will add later {% if not current_user.is_authenticated %} -->
             <h4 class="nav-section-title">Visitor Access</h4>
             <ul class="nav-section">
                 <li><a href="{{ url_for('main.home') }}">Home</a></li>
-                <li><a href="{{ url_for('user.login') }}">Login</a></li>
+                <li><a href="{{ url_for('main.about') }}">About</a></li>
+                <li><a href="{{ url_for('teacher.teachers') }}">View Teachers</a></li>
+                {% if not current_user.is_authenticated %}
                 <li><a href="{{ url_for('user.register') }}">Register</a></li>
-            </ul>
-            <!--{% endif %}-->
+                <li><a href="{{ url_for('user.login') }}">Login</a></li>
+                {% endif %}
+                {% if current_user.is_authenticated %}
 
-            <!--{% if current_user.is_authenticated %}-->
-            <h4 class="nav-section-title"><!--{{ current_user.role|capitalize }}--> Access</h4>
+                {% endif %}
+            </ul>
+            {% if current_user.is_authenticated %}
+            <h4 class="nav-section-title">{{ current_user.role|capitalize }} Access</h4>
             <ul class="nav-section">
-                <!--{% if current_user.role in ['student', 'teacher'] %}-->
-                <li><a href="{{ url_for('appointment.book') }}">Book Appointment</a></li>
-                <li><a href="{{ url_for('appointment.my_appointments') }}">My Appointments</a></li>
-                <!--{% endif %}-->
+                <li><a href="{{ url_for('user.profile') }}">Profile</a></li>
+                <li><a href="{{ url_for('user.logout') }}">Logout</a></li>
+                {% if current_user.role == 'student' or current_user.role == 'teacher' %}
+                <li><a href="{{ url_for('appointment.form') }}">Book Appointment</a></li>
+                <li><a href="">My Appointments</a></li>
+                {% endif %}
                 <!--{% if current_user.role == 'admin_user' %}-->
                 <li><a href="{{ url_for('admin_user.manage_members') }}">Manage Users</a></li>
                 <!--{% endif %}-->
@@ -61,9 +73,8 @@
                 <li><a href="{{ url_for('admin.manage_appointments') }}">Manage Appointments</a></li>
                 <li><a href="{{ url_for('report.view') }}">Reports</a></li>
                 <!--{% endif %}-->
-                <li><a href="{{ url_for('auth.logout') }}">Logout</a></li>
             </ul>
-            <!--{% endif %}-->
+            {% endif %}
         </nav>
         <main>
             {% block content %}

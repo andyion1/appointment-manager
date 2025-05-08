@@ -50,7 +50,6 @@ class Database:
     def __run_file(self, file_path):
         statement_parts = []
         with self.__connection.cursor() as cursor:
-            # pdb.set_trace()
             with open(file_path, 'r') as f:
                 for line in f:
                     if line[:2]=='--': continue
@@ -59,7 +58,6 @@ class Database:
                         statement = "".join( statement_parts).strip().rstrip(';')
                         if statement:
                             try:
-                                # pdb.set_trace()
                                 cursor.execute(statement)
                             except Exception as e:
                                 print(e)
@@ -78,10 +76,120 @@ class Database:
 # ---------------------------------------------------------------------------
 
 
+    def add_user(self, user):
+        '''Add a user to the DB for the given User object (tuple)'''
+        qry = f"INSERT INTO USER_PROJ (username, password_hash, email, full_name, role) VALUES ('{user.username}', '{user.password_hash}', '{user.email}', '{user.full_name}', '{user.role}')"
+        with self.get_cursor() as curr:
+            try:
+                curr.execute(qry)
+                self.__connect()
+            except Exception as e:
+                print(e)
 
+    def get_user(self, cond):
+        '''Returns a User object based on the provided user_id'''
+        from app.user.user import User
+        qry = f"SELECT * FROM USER_PROJ WHERE {cond}"
+        with self.get_cursor() as curr:
+            try:
+                curr.execute(qry)
+                user_data = curr.fetchone()
+                if user_data:
+                    return User(*user_data)
+                return None
+            except Exception as e:
+                print(e)
+    def update_user(self, id, updates):
+        qry = f"update user_proj set full_name = '{updates['full_name']}', email = '{updates['email']}', user_image = '{updates['user_image']}' where user_id = '{id}'"
+        with self.__connection.cursor() as curr:
+            try:
+                res = curr.execute(qry)
+                self.__connection.commit()
+            except Exception as e:
+                print(e)
+
+
+    def add_teacher(self, teacher):
+        '''Add a teacher to the DB from a Teacher object'''
+        qry = """
+            INSERT INTO TEACHER (user_id, department, office_location)
+            VALUES (%s, %s, %s)
+        """
+        with self.get_cursor() as curr:
+            try:
+                curr.execute(qry, (teacher.user_id, teacher.department, teacher.office_location))
+            except Exception as e:
+                print("add_teacher error:", e)
+
+    def get_teachers(self):
+        """Returns all teachers as Teacher objects"""
+        from app.user.user import Teacher
+        query = """
+            SELECT u.user_id, u.username, u.password_hash, u.email, u.full_name, u.role, u.user_image,
+                t.teacher_id, t.department, t.office_location
+            FROM USER_PROJ u
+            JOIN TEACHER t ON u.user_id = t.user_id
+            WHERE u.role = 'teacher'
+            """
+        with self.get_cursor() as curr:
+            try:
+                curr.execute(query)
+                data = curr.fetchall()
+                return [Teacher(*row) for row in data] if data else []
+            except Exception as e:
+                print("get_teachers error:", e)
+                return []
+
+    def get_teacher(self, cond):
+        '''Returns a Teacher object based on a condition (e.g., teacher_id = 3)'''
+        from app.user.user import Teacher
+        qry = f"""
+            SELECT u.user_id, u.username, u.password_hash, u.email, u.full_name, u.role, u.user_image,
+                t.teacher_id, t.department, t.office_location
+            FROM USER_PROJ u
+            JOIN TEACHER t ON u.user_id = t.user_id
+            WHERE {cond}
+        """
+        with self.get_cursor() as curr:
+            try:
+                curr.execute(qry)
+                data = curr.fetchone()
+                if data:
+                    return Teacher(*data)
+                return None
+            except Exception as e:
+                print("get_teacher error:", e)
+                return None
+        
+    def add_student(self, student):
+        '''Add a student to the DB from a Student object'''
+        qry = """
+            INSERT INTO STUDENT (user_id, program, student_number)
+            VALUES (%s, %s, %s)
+        """
+        with self.get_cursor() as curr:
+            try:
+                curr.execute(qry, (student.user_id, student.program, student.student_number))
+            except Exception as e:
+                print("add_student error:", e)
+
+
+    def get_student(self, cond):
+        '''Returns a Student object based on the provided condition'''
+        from app.user.user import Student
+        qry = f"SELECT * FROM Student WHERE {cond}"
+        with self.get_cursor() as curr:
+            try:
+                curr.execute(qry)
+                student_data = curr.fetchone()
+                if student_data:
+                    return Student(*student_data)
+                return None
+            except Exception as e:
+                print(e)
+                return None
 # ===========================================================================
 db = Database()
 
 if __name__ == '__main__':
-    # pdb.set_trace()
     db.run_sql_script('./models/database.sql')
