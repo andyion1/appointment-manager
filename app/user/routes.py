@@ -3,7 +3,12 @@ from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash
 import os
 from datetime import datetime
+
+from models.utils import save_file
 from .user import Student, Teacher, User
+from werkzeug.utils import secure_filename
+from flask import current_app
+from models.database import db
 import pdb
 
 from .forms import LoginForm, RegistrationForm, ProfileForm, StudentExtraForm, TeacherExtraForm
@@ -105,19 +110,44 @@ def teacher_register():
 
 
 @user.route("/logout")
+@login_required
 def logout():
     logout_user()
     flash('You have been logged out.', 'info')
     return redirect(url_for('main.home'))
 
 @user.route("/profile", methods=['GET', 'POST'])
+@login_required
 def profile():
-    form = ProfileForm()
+    # Get user object directly
+    user_obj = User.get_user_by_id(current_user.user_id)
+
+    # Preload form with user data
+    form = ProfileForm(obj=user_obj)
+
+    # Default image path (for displaying if needed)
+    user_image = current_user.user_image  # Assumes this field exists on User
+
     if form.validate_on_submit():
-        User.update_user(current_user.user_id,form.email.data, form.full_name.data)
-        flash(f" updated {request.form['full_name']} with success !", 'success')
+        # Check if a new image was uploaded
+        if form.user_image.data:
+            # Save image and get new filename
+            new_file_name = save_file(form.user_image.data)  # You must define save_file()
+            user_image = new_file_name  # Update the image path
+
+        # Update user info in the DB
+        updates = {
+            'email': form.email.data,
+            'full_name': form.full_name.data,
+            'user_image': user_image  # Include new image filename if uploaded
+        }
+        db.update_user(current_user.user_id, updates)  # Make sure db.update_user accepts a dict
+
+        flash(f"Profile updated successfully!", 'success')
         return redirect(url_for('user.profile'))
-    return render_template('profile.html', form=form, user=user)
+
+    return render_template('profile.html', form=form)
+
 
 
 @user.route("/users")

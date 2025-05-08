@@ -12,6 +12,7 @@ class User(UserMixin):
         self.email = args[3]
         self.full_name = args[4]
         self.role = args[5]
+        self.user_image = args[6]
     
     
     def get_id(self):
