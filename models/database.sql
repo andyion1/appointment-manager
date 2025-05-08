@@ -10,7 +10,8 @@ CREATE TABLE USER_PROJ(
     password_hash TEXT NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
     full_name VARCHAR(100),
-    role VARCHAR(20) CHECK (role IN ('student', 'teacher', 'admin_user', 'admin_appoint', 'superuser'))
+    role VARCHAR(20) CHECK (role IN ('student', 'teacher', 'admin_user', 'admin_appoint', 'superuser')),
+    user_image VARCHAR(55)
 );
 
 CREATE TABLE STUDENT(
