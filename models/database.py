@@ -78,7 +78,7 @@ class Database:
 
     def add_user(self, user):
         '''Add a user to the DB for the given User object (tuple)'''
-        qry = f"INSERT INTO USER_PROJ (username, password_hash, email, full_name, role) VALUES ('{user.username}', '{user.password_hash}', '{user.email}', '{user.full_name}', '{user.role}')"
+        qry = f"INSERT INTO USER_PROJ (username, password_hash, email, full_name, role, user_image) VALUES ('{user.username}', '{user.password_hash}', '{user.email}', '{user.full_name}', '{user.role}', '{user.user_image}')"
         with self.get_cursor() as curr:
             try:
                 curr.execute(qry)

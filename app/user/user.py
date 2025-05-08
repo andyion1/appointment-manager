@@ -133,7 +133,7 @@ class Student(User):
 
 
 class Teacher(User):
-    def __init__(self, user_id=None, username=None, password_hash=None, email=None, full_name=None, user_image=None, role=None, teacher_id=None, department=None, office_location=None):
+    def __init__(self, user_id=None, username=None, password_hash=None, email=None, full_name=None, role=None, user_image=None, teacher_id=None, department=None, office_location=None):
         # Initialize base User attributes
         super().__init__(user_id, username, password_hash, email, full_name, role, user_image)
         
