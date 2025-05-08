@@ -2,10 +2,10 @@ from flask import Flask
 from flask_login import LoginManager
 from config import Config
 from .main.routes import main
-from .appointment.routes import appointment
-from .report.routes import report
+from .appointment.routes import appointmentBlueprint
+from .report.routes import reportBlueprint
 from .user.routes import user
-from .student.routes import student
+from .student.routes import studentBlueprint
 from .teacher.routes import teacherBlueprint
 from .user.user import User
 from config import Config
@@ -25,10 +25,10 @@ def create_app():
     
     # Register blueprints
     app.register_blueprint(main)
-    app.register_blueprint(appointment)
-    app.register_blueprint(report)
+    app.register_blueprint(appointmentBlueprint)
+    app.register_blueprint(reportBlueprint)
     app.register_blueprint(user)
-    app.register_blueprint(student)
+    app.register_blueprint(studentBlueprint)
     app.register_blueprint(teacherBlueprint)
     
     return app
