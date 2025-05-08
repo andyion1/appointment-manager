@@ -188,6 +188,33 @@ class Database:
             except Exception as e:
                 print(e)
                 return None
+    def get_students(self):
+        from app.user.user import Student
+        query = """
+            SELECT u.user_id, u.username, u.password_hash, u.email, u.full_name, u.role, u.user_image,
+                s.student_id, s.program, s.student_number
+            FROM USER_PROJ u
+            JOIN STUDENT s ON u.user_id = s.user_id
+            WHERE u.role = 'student'
+            """
+        with self.get_cursor() as curr:
+            try:
+                curr.execute(query)
+                data = curr.fetchall()
+                return [Student(*row) for row in data] if data else []
+            except Exception as e:
+                print("get_students error:", e)
+                return []
+    def add_appointment(self, appointment):
+        qry = """
+            INSERT INTO APPOINTMENT (student_id, teacher_id, appointment_date, status, created_at, appointment_time, reason)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+        """
+        with self.get_cursor() as curr:
+            try:
+                curr.execute(qry, (appointment.student_id, appointment.teacher_id, appointment.appointment_date, appointment.status, appointment.created_at, appointment.appointment_time, appointment.reason))
+            except Exception as e:
+                print("add_appointment error:", e)
 # ===========================================================================
 db = Database()
 

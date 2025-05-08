@@ -2,6 +2,7 @@ from flask import flash, request
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from models.database import db
+from datetime import datetime
 import pdb
 
 class User(UserMixin):
@@ -125,6 +126,10 @@ class Student(User):
     def get_student_by_user_id(user_id):
         """Fetches a student by their user ID"""
         return db.get_student(f"user_id = {user_id}")
+    
+    def get_student_by_user_name(username):
+        """Fetches a student by their username"""
+        return db.get_student(f"username = '{username}'")
 
 
 class Teacher(User):
@@ -163,6 +168,10 @@ class Teacher(User):
     def get_teacher_by_user_id(user_id):
         """Fetches a teacher by their user ID"""
         return db.get_teacher(f"user_id = {user_id}")
+    
+    def get_teacher_by_user_name(username):
+        """Fetches a teacher by their username"""
+        return db.get_teacher(f"username = '{username}'")
 
 
 
