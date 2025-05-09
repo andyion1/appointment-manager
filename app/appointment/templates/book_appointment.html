@@ -20,8 +20,6 @@
                         {% endfor %}
                     </ul>
                 {% endif %}
-                
-                {{ form.student(type="hidden") }}
             {% elif current_user.role == 'teacher' %}
                 {{ form.student.label(class="form-label") }}
                 {{ form.student(class="form-control") }}
@@ -32,8 +30,6 @@
                         {% endfor %}
                     </ul>
                 {% endif %}
-                
-                {{ form.teacher(type="hidden") }}
             {% else %}
                 <!-- Admin can select both -->
                 <div class="form-section">

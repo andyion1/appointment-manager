@@ -59,7 +59,7 @@
                 <li><a href="{{ url_for('user.logout') }}">Logout</a></li>
                 {% if current_user.role == 'student' or current_user.role == 'teacher' %}
                 <li><a href="{{ url_for('appointment.form') }}">Book Appointment</a></li>
-                <li><a href="">My Appointments</a></li>
+                <li><a href="{{ url_for('appointment.appointments') }}">My Appointments</a></li>
                 {% endif %}
                 <!--{% if current_user.role == 'admin_user' %}-->
                 <li><a href="{{ url_for('admin_user.manage_members') }}">Manage Users</a></li>

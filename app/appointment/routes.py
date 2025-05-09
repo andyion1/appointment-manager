@@ -114,31 +114,92 @@ def update_status(appointment_id):
     
     return redirect(url_for('appointment.appointment', appointment_id=appointment_id))
 
-# In app/appointment/routes.py
-# Find the form() method and update the appointment creation section:
-
 @appointmentBlueprint.route("/bookAppointment", methods=["GET", "POST"])
 @login_required
 def form():
     form = AppointmentForm()
-
+    
+    # Add debug logging
+    print(f"Current user: {current_user.username}, role: {current_user.role}")
+    
     teachers = db.get_teachers()
     students = db.get_students()
 
+    # Sort for better UX
     students = sorted(students, key=lambda s: s.full_name.lower())
     teachers = sorted(teachers, key=lambda t: t.department.lower() if t.department else "")
 
-    form.teacher.choices = [(t.teacher_id, f"{t.department} - {t.full_name}") for t in teachers]
-    form.student.choices = [(s.student_id, s.full_name) for s in students]
+    # Set choices for select fields based on user role
+    if current_user.role == 'student' or current_user.role not in ['student', 'teacher']:
+        form.teacher.choices = [(t.teacher_id, f"{t.department} - {t.full_name}") for t in teachers]
+    
+    if current_user.role == 'teacher' or current_user.role not in ['student', 'teacher']:
+        form.student.choices = [(s.student_id, s.full_name) for s in students]
 
     if form.validate_on_submit():
-        if current_user.role == 'student':
-            # Get student directly by user_id instead of username
-            student = Student.get_student_by_user_id(current_user.user_id)
-            if student:
+        print("Form validated successfully")
+        
+        try:
+            # Create appointment based on user role
+            if current_user.role == 'student':
+                student = Student.get_student_by_user_id(current_user.user_id)
+                print(f"Found student: {student}")
+                
+                if student:
+                    new_appointment = Appointment(
+                        0,  # appointment_id will be assigned by database
+                        student.student_id,
+                        form.teacher.data,
+                        form.date.data,
+                        form.time.data,
+                        "pending",
+                        form.reason.data,
+                        datetime.now()
+                    )
+                    
+                    print(f"Trying to add appointment: {vars(new_appointment)}")
+                    appointment_id = db.add_appointment(new_appointment)
+                    
+                    if appointment_id:
+                        flash("Appointment created successfully!", "success")
+                        return redirect(url_for('appointment.appointments'))
+                    else:
+                        flash("Failed to create appointment in database", "danger")
+                else:
+                    flash("Could not find your student record", "danger")
+                    
+            elif current_user.role == 'teacher':
+                # Similar code for teacher role
+                teacher = Teacher.get_teacher_by_user_id(current_user.user_id)
+                print(f"Found teacher: {teacher}")
+                
+                if teacher:
+                    new_appointment = Appointment(
+                        0,
+                        form.student.data,
+                        teacher.teacher_id,
+                        form.date.data,
+                        form.time.data,
+                        "pending",
+                        form.reason.data,
+                        datetime.now()
+                    )
+                    
+                    print(f"Trying to add appointment: {vars(new_appointment)}")
+                    appointment_id = db.add_appointment(new_appointment)
+                    
+                    if appointment_id:
+                        flash("Appointment created successfully!", "success")
+                        return redirect(url_for('appointment.appointments'))
+                    else:
+                        flash("Failed to create appointment in database", "danger")
+                else:
+                    flash("Could not find your teacher record", "danger")
+            else:
+                # Admin path
                 new_appointment = Appointment(
                     0,
-                    student.student_id,  # Use student_id from the found student
+                    form.student.data,
                     form.teacher.data,
                     form.date.data,
                     form.time.data,
@@ -146,33 +207,22 @@ def form():
                     form.reason.data,
                     datetime.now()
                 )
+                
+                print(f"Trying to add appointment: {vars(new_appointment)}")
                 appointment_id = db.add_appointment(new_appointment)
+                
                 if appointment_id:
-                    flash("Appointment successfully created!", "success")
-                return redirect(url_for('appointment.appointments'))
-            else:
-                flash("Unable to find your student record. Please contact an administrator.", "danger")
-        else:
-            # Get teacher directly by user_id instead of username
-            teacher = Teacher.get_teacher_by_user_id(current_user.user_id)
-            if teacher:
-                new_appointment = Appointment(
-                    0,
-                    form.student.data,
-                    teacher.teacher_id,  # Use teacher_id from the found teacher
-                    form.date.data,
-                    form.time.data,
-                    "pending", 
-                    form.reason.data,
-                    datetime.now()
-                )
-                appointment_id = db.add_appointment(new_appointment)
-                if appointment_id:
-                    flash("Appointment successfully created!", "success")
-                return redirect(url_for('appointment.appointments'))
-            else:
-                flash("Unable to find your teacher record. Please contact an administrator.", "danger")
+                    flash("Appointment created successfully!", "success")
+                    return redirect(url_for('appointment.appointments'))
+                else:
+                    flash("Failed to create appointment in database", "danger")
+                    
+        except Exception as e:
+            print(f"Error creating appointment: {e}")
+            flash(f"An error occurred: {str(e)}", "danger")
     else:
-        print("Form errors:", form.errors)
+        # Print form errors for debugging
+        if form.errors:
+            print("Form errors:", form.errors)
 
-    return render_template("book_appointment.html", form=form, logo="static/images/logo.PNG", css="static/css/style.css")
+    return render_template("book_appointment.html", form=form)
