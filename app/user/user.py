@@ -88,13 +88,13 @@ class User(UserMixin):
 
 class Student(User):
     def __init__(self, *args):
-        super().__init__(*args[:6])  # Pass first 6 arguments to parent class
+        super().__init__(*args[:7])  # Pass first 6 arguments to parent class
         
         # Student-specific attributes
-        if len(args) >= 8:
-            self.student_id = args[6]
-            self.program = args[7]
-            self.student_number = args[8] if len(args) > 8 else None
+        if len(args) >= 9:
+            self.student_id = args[7]
+            self.program = args[8]
+            self.student_number = args[9] if len(args) > 8 else None
     
     @staticmethod
     def create_student(username, password, email, full_name, program, student_number=None):
@@ -110,6 +110,8 @@ class Student(User):
                 user.email,
                 user.full_name,
                 user.role,
+                None,
+                None,
                 program,
                 student_number
             )
@@ -158,10 +160,11 @@ class Teacher(User):
                 user.full_name,
                 user.role,
                 None,
+                None,
                 department,
                 office_location
             )
-
+            pdb.set_trace()
             db.add_teacher(teacher)
             return Teacher.get_teacher_by_user_id(user.user_id)
 

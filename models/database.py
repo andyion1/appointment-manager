@@ -86,6 +86,16 @@ class Database:
             except Exception as e:
                 print(e)
 
+    def get_users(self):
+        qry = "SELECT * FROM USER_PROJ"
+        with self.get_cursor() as curr:
+            try:
+                curr.execute(qry)
+                return curr.fetchall()
+            except Exception as e:
+                print("get_all_users error:", e)
+                return []
+
     def get_user(self, cond):
         '''Returns a User object based on the provided user_id'''
         from app.user.user import User
@@ -99,6 +109,7 @@ class Database:
                 return None
             except Exception as e:
                 print(e)
+    
     def update_user(self, id, updates):
         qry = f"update user_proj set full_name = '{updates['full_name']}', email = '{updates['email']}', user_image = '{updates['user_image']}' where user_id = '{id}'"
         with self.__connection.cursor() as curr:
@@ -107,6 +118,11 @@ class Database:
                 self.__connection.commit()
             except Exception as e:
                 print(e)
+
+    def delete_user(self, user_id):
+        qry = "DELETE FROM USER_PROJ WHERE user_id = %s"
+        with self.get_cursor() as curr:
+            curr.execute(qry, (user_id,))
 
 
     def add_teacher(self, teacher):
@@ -117,6 +133,7 @@ class Database:
         """
         with self.get_cursor() as curr:
             try:
+                pdb.set_trace()
                 curr.execute(qry, (teacher.user_id, teacher.department, teacher.office_location))
             except Exception as e:
                 print("add_teacher error:", e)
