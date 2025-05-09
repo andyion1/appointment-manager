@@ -114,6 +114,9 @@ def update_status(appointment_id):
     
     return redirect(url_for('appointment.appointment', appointment_id=appointment_id))
 
+# In app/appointment/routes.py
+# Find the form() method and update the appointment creation section:
+
 @appointmentBlueprint.route("/bookAppointment", methods=["GET", "POST"])
 @login_required
 def form():
@@ -125,34 +128,50 @@ def form():
     students = sorted(students, key=lambda s: s.full_name.lower())
     teachers = sorted(teachers, key=lambda t: t.department.lower() if t.department else "")
 
-    form.teacher.choices = [(t.user_id, f"{t.department} - {t.full_name}") for t in teachers]
-    form.student.choices = [(s.user_id, s.full_name) for s in students]
+    form.teacher.choices = [(t.teacher_id, f"{t.department} - {t.full_name}") for t in teachers]
+    form.student.choices = [(s.student_id, s.full_name) for s in students]
 
     if form.validate_on_submit():
         if current_user.role == 'student':
-            new_appointment = Appointment(
-                0,
-                Student.get_student_by_user_name(current_user.username).student_id,
-                form.teacher.data,
-                form.date.data,
-                form.time.data,
-                "pending",
-                form.reason.data,
-                datetime.now()
-            )
+            # Get student directly by user_id instead of username
+            student = Student.get_student_by_user_id(current_user.user_id)
+            if student:
+                new_appointment = Appointment(
+                    0,
+                    student.student_id,  # Use student_id from the found student
+                    form.teacher.data,
+                    form.date.data,
+                    form.time.data,
+                    "pending",
+                    form.reason.data,
+                    datetime.now()
+                )
+                appointment_id = db.add_appointment(new_appointment)
+                if appointment_id:
+                    flash("Appointment successfully created!", "success")
+                return redirect(url_for('appointment.appointments'))
+            else:
+                flash("Unable to find your student record. Please contact an administrator.", "danger")
         else:
-            new_appointment = Appointment(
-                0,
-                form.student.data,  # <-- fixed typo
-                Teacher.get_teacher_by_user_name(current_user.username).teacher_id,
-                form.date.data,
-                form.time.data,
-                "pending",
-                form.reason.data,
-                datetime.now()
-            )
-        db.add_appointment(new_appointment)
-        return redirect(url_for('appointment.appointments'))
+            # Get teacher directly by user_id instead of username
+            teacher = Teacher.get_teacher_by_user_id(current_user.user_id)
+            if teacher:
+                new_appointment = Appointment(
+                    0,
+                    form.student.data,
+                    teacher.teacher_id,  # Use teacher_id from the found teacher
+                    form.date.data,
+                    form.time.data,
+                    "pending", 
+                    form.reason.data,
+                    datetime.now()
+                )
+                appointment_id = db.add_appointment(new_appointment)
+                if appointment_id:
+                    flash("Appointment successfully created!", "success")
+                return redirect(url_for('appointment.appointments'))
+            else:
+                flash("Unable to find your teacher record. Please contact an administrator.", "danger")
     else:
         print("Form errors:", form.errors)
 
