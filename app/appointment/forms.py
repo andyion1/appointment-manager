@@ -9,3 +9,11 @@ class AppointmentForm(FlaskForm):
     time = TimeField('Time', format='%H:%M', validators=[DataRequired()])
     reason = StringField('Reason / Notes', render_kw={"rows": 3})
     submit = SubmitField('Book Appointment')
+
+class AppointmentStatusForm(FlaskForm):
+    status = SelectField('Status', choices=[
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('cancelled', 'Cancelled')
+    ], validators=[DataRequired()])
+    submit = SubmitField('Update Status')

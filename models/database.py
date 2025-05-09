@@ -206,6 +206,21 @@ class Database:
                 print("get_students error:", e)
                 return []
 
+    def get_appointment(self, cond):
+        '''Returns an Appointment object based on the provided condition'''
+        from models.data_classes import Appointment
+        qry = f"SELECT * FROM APPOINTMENT WHERE {cond}"
+        with self.get_cursor() as curr:
+            try:
+                curr.execute(qry)
+                data = curr.fetchone()
+                if data:
+                    return Appointment(*data)
+                return None
+            except Exception as e:
+                print(f"get_appointment error: {e}")
+                return None
+    
     def add_appointment(self, appointment):
         '''Add an appointment to the database'''
         qry = """
@@ -230,12 +245,29 @@ class Database:
                 print("add_appointment error:", e)
                 return None
 
+    def get_appointments(self, cond=None):
+        '''Returns all appointments as Appointment objects, with optional condition'''
+        from models.data_classes import Appointment
+        qry = "SELECT * FROM APPOINTMENT"
+        if cond:
+            qry += f" WHERE {cond}"
+        qry += " ORDER BY appointment_date DESC, appointment_time ASC"
+        
+        with self.get_cursor() as curr:
+            try:
+                curr.execute(qry)
+                data = curr.fetchall()
+                return [Appointment(*row) for row in data] if data else []
+            except Exception as e:
+                print("get_appointments error:", e)
+                return []
+
     def get_appointments_with_details(self, cond=None):
         '''Returns appointments with student and teacher names'''
         qry = """
             SELECT a.appointment_id, a.student_id, a.teacher_id, a.appointment_date, 
                 a.status, a.created_at, a.appointment_time, a.reason,
-                s.full_name as student_name, t.full_name as teacher_name
+                su.full_name as student_name, tu.full_name as teacher_name
             FROM APPOINTMENT a
             JOIN STUDENT s ON a.student_id = s.student_id
             JOIN TEACHER t ON a.teacher_id = t.teacher_id
@@ -253,6 +285,37 @@ class Database:
             except Exception as e:
                 print("get_appointments_with_details error:", e)
                 return []
+
+    def update_appointment(self, appointment_id, updates):
+        '''Update an appointment in the database'''
+        set_clauses = []
+        for key, value in updates.items():
+            if isinstance(value, str):
+                set_clauses.append(f"{key} = '{value}'")
+            else:
+                set_clauses.append(f"{key} = {value}")
+        
+        set_clause = ", ".join(set_clauses)
+        qry = f"UPDATE APPOINTMENT SET {set_clause} WHERE appointment_id = {appointment_id}"
+        
+        with self.get_cursor() as curr:
+            try:
+                curr.execute(qry)
+                return True
+            except Exception as e:
+                print("update_appointment error:", e)
+                return False
+
+    def delete_appointment(self, appointment_id):
+        '''Delete an appointment from the database'''
+        qry = f"DELETE FROM APPOINTMENT WHERE appointment_id = {appointment_id}"
+        with self.get_cursor() as curr:
+            try:
+                curr.execute(qry)
+                return True
+            except Exception as e:
+                print("delete_appointment error:", e)
+                return False
 # ===========================================================================
 db = Database()
 
