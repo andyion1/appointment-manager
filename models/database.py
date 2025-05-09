@@ -205,16 +205,54 @@ class Database:
             except Exception as e:
                 print("get_students error:", e)
                 return []
+
     def add_appointment(self, appointment):
+        '''Add an appointment to the database'''
         qry = """
             INSERT INTO APPOINTMENT (student_id, teacher_id, appointment_date, status, created_at, appointment_time, reason)
             VALUES (%s, %s, %s, %s, %s, %s, %s)
+            RETURNING appointment_id
         """
         with self.get_cursor() as curr:
             try:
-                curr.execute(qry, (appointment.student_id, appointment.teacher_id, appointment.appointment_date, appointment.status, appointment.created_at, appointment.appointment_time, appointment.reason))
+                curr.execute(qry, (
+                    appointment.student_id, 
+                    appointment.teacher_id, 
+                    appointment.appointment_date, 
+                    appointment.status, 
+                    appointment.created_at, 
+                    appointment.appointment_time, 
+                    appointment.reason
+                ))
+                appointment_id = curr.fetchone()[0]
+                return appointment_id
             except Exception as e:
                 print("add_appointment error:", e)
+                return None
+
+    def get_appointments_with_details(self, cond=None):
+        '''Returns appointments with student and teacher names'''
+        qry = """
+            SELECT a.appointment_id, a.student_id, a.teacher_id, a.appointment_date, 
+                a.status, a.created_at, a.appointment_time, a.reason,
+                s.full_name as student_name, t.full_name as teacher_name
+            FROM APPOINTMENT a
+            JOIN STUDENT s ON a.student_id = s.student_id
+            JOIN TEACHER t ON a.teacher_id = t.teacher_id
+            JOIN USER_PROJ su ON s.user_id = su.user_id
+            JOIN USER_PROJ tu ON t.user_id = tu.user_id
+        """
+        if cond:
+            qry += f" WHERE {cond}"
+        qry += " ORDER BY a.appointment_date DESC, a.appointment_time ASC"
+        
+        with self.get_cursor() as curr:
+            try:
+                curr.execute(qry)
+                return curr.fetchall()
+            except Exception as e:
+                print("get_appointments_with_details error:", e)
+                return []
 # ===========================================================================
 db = Database()
 
