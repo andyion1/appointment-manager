@@ -1,44 +1,110 @@
 {% extends "base.html" %}
+
+{% block title %}Book Appointment{% endblock %}
+
 {% block content %}
-<div class="container">
+<div class="form-container">
     <h2>Book an Appointment</h2>
-
+    
     <form method="POST" action="{{ url_for('appointment.form') }}">
-      {{ form.hidden_tag() }}
-      <!-- if current_user.role is student then show form.student info, else teacger-->
-      {% if current_user.role == 'student' %}
-        <div class="form-group">
-          {{ form.teacher.label }}
-          {{ form.teacher(class="form-control") }}
+        {{ form.hidden_tag() }}
+        
+        <div class="form-section">
+            {% if current_user.role == 'student' %}
+                {{ form.teacher.label(class="form-label") }}
+                {{ form.teacher(class="form-control") }}
+                {% if form.teacher.errors %}
+                    <ul class="errors">
+                        {% for error in form.teacher.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+                
+                {{ form.student(type="hidden") }}
+            {% elif current_user.role == 'teacher' %}
+                {{ form.student.label(class="form-label") }}
+                {{ form.student(class="form-control") }}
+                {% if form.student.errors %}
+                    <ul class="errors">
+                        {% for error in form.student.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+                
+                {{ form.teacher(type="hidden") }}
+            {% else %}
+                <!-- Admin can select both -->
+                <div class="form-section">
+                    {{ form.student.label(class="form-label") }}
+                    {{ form.student(class="form-control") }}
+                    {% if form.student.errors %}
+                        <ul class="errors">
+                            {% for error in form.student.errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                </div>
+                
+                <div class="form-section">
+                    {{ form.teacher.label(class="form-label") }}
+                    {{ form.teacher(class="form-control") }}
+                    {% if form.teacher.errors %}
+                        <ul class="errors">
+                            {% for error in form.teacher.errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                </div>
+            {% endif %}
         </div>
-        {{ form.student(type="hidden") }}
-      {% else %}
-        <div class="form-group">
-          {{ form.student.label }}
-          {{ form.student(class="form-control") }}
+        
+        <div class="form-section">
+            {{ form.date.label(class="form-label") }}
+            {{ form.date(class="form-control", type="date") }}
+            {% if form.date.errors %}
+                <ul class="errors">
+                    {% for error in form.date.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
         </div>
-        {{ form.teacher(type="hidden") }}
-      {% endif %}
-
-
-      <div class="form-group">
-        {{ form.date.label }}
-        {{ form.date(class="form-control") }}
-      </div>
-
-      <div class="form-group">
-        {{ form.time.label }}
-        {{ form.time(class="form-control") }}
-      </div>
-
-      <div class="form-group">
-        {{ form.reason.label }}
-        {{ form.reason(class="form-control") }}
-      </div>
-
-      <div class="form-group">
-        {{ form.submit(class="btn btn-primary") }}
-      </div>
+        
+        <div class="form-section">
+            {{ form.time.label(class="form-label") }}
+            {{ form.time(class="form-control", type="time") }}
+            {% if form.time.errors %}
+                <ul class="errors">
+                    {% for error in form.time.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+        
+        <div class="form-section">
+            {{ form.reason.label(class="form-label") }}
+            {{ form.reason(class="form-control", rows=4) }}
+            {% if form.reason.errors %}
+                <ul class="errors">
+                    {% for error in form.reason.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+        
+        <div class="form-section">
+            {{ form.submit(class="submit-button primary-button") }}
+        </div>
     </form>
-  </div>
+    
+    <div class="back-link">
+        <a href="{{ url_for('appointment.appointments') }}">Back to Appointments</a>
+    </div>
+</div>
 {% endblock %}
