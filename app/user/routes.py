@@ -95,6 +95,7 @@ def teacher_register():
         return redirect(url_for('user.register'))
     
     if form.validate_on_submit():
+        pdb.set_trace()
         Teacher.create_teacher(
             username=user['username'],
             password=user['password'],
