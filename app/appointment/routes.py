@@ -91,9 +91,7 @@ def update_status(appointment_id):
     # Check permissions
     has_permission = False
     
-    if current_user.role in ['admin_appoint', 'admin_super']:
-        has_permission = True
-    elif current_user.role == 'teacher':
+    if current_user.role == 'teacher':
         teacher = Teacher.get_teacher_by_user_name(current_user.username)
         if teacher and teacher.teacher_id == appointment.teacher_id:
             has_permission = True

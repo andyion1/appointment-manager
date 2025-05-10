@@ -171,9 +171,12 @@ class Teacher(User):
 
     
     @staticmethod
-    #def get_teacher_by_user_id(user_id):
-     #   """Fetches a teacher by their user ID"""
-      #  return db.get_teacher(f"user_id = {user_id}")
+    def get_teacher_by_user_id(user_id):
+        """Fetches a teacher by their user ID"""
+        user = User.get_user_by_id(user_id)
+        if user:
+            return db.get_teacher(f"user_id = {user_id}")
+        return None
     
     @staticmethod
     def get_teacher_by_user_name(username):
