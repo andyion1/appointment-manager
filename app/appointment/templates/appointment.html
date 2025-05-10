@@ -1,7 +1,66 @@
 {% extends "base.html" %}
-{% block nav %}
 
-{% endblock %}
+{% block title %}Appointment Details{% endblock %}
+
 {% block content %}
+<div class="appointment-details">
+    <h2>Appointment #{{ appointment.appointment_id }}</h2>
     
+    <div class="appointment-info">
+        <div class="appointment-status">
+            <span class="status-badge {{ appointment.status }}">{{ appointment.status }}</span>
+        </div>
+        
+        <div class="appointment-datetime">
+            <p><strong>Date:</strong> {{ appointment.appointment_date }}</p>
+            <p><strong>Time:</strong> {{ appointment.appointment_time }}</p>
+        </div>
+        
+        <div class="appointment-participants">
+            {% if student %}
+            <p><strong>Student:</strong> {{ student.full_name }}{% if student.program %} ({{ student.program }}){% endif %}</p>
+            {% endif %}
+            
+            {% if teacher %}
+            <p><strong>Teacher:</strong> {{ teacher.full_name }}{% if teacher.department %} ({{ teacher.department }}){% endif %}</p>
+            {% endif %}
+        </div>
+        
+        <div class="appointment-reason">
+            <h3>Reason:</h3>
+            <p>{{ appointment.reason }}</p>
+        </div>
+        
+        <div class="appointment-metadata">
+            <p><strong>Created at:</strong> {{ appointment.created_at }}</p>
+        </div>
+    </div>
+    
+    {% if current_user.role == 'teacher' or current_user.role in ['admin_appoint', 'admin_super'] %}
+    <div class="appointment-actions">
+        <h3>Update Status</h3>
+        <form method="POST" action="{{ url_for('appointment.update_status', appointment_id=appointment.appointment_id) }}">
+            {{ status_form.hidden_tag() }}
+            <div class="form-section">
+                {{ status_form.status.label(class="form-label") }}
+                {{ status_form.status(class="form-control") }}
+                {% if status_form.status.errors %}
+                    <ul class="errors">
+                        {% for error in status_form.status.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+            <div class="form-section">
+                {{ status_form.submit(class="submit-button primary-button") }}
+            </div>
+        </form>
+    </div>
+    {% endif %}
+    
+    <div class="back-link">
+        <a href="{{ url_for('appointment.appointments') }}">Back to Appointments</a>
+    </div>
+</div>
 {% endblock %}

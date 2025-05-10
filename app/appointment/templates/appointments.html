@@ -1,7 +1,42 @@
 {% extends "base.html" %}
-{% block nav %}
 
-{% endblock %}
+{% block title %}My Appointments{% endblock %}
+
 {% block content %}
-    
+<h2>My Appointments</h2>
+
+<div class="action-buttons">
+    <a href="{{ url_for('appointment.form') }}" class="submit-button primary-button">Book New Appointment</a>
+</div>
+
+{% if appointments %}
+<table class="appointment-table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Date</th>
+            <th>Time</th>
+            <th>Status</th>
+            <th>Reason</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for appointment in appointments %}
+        <tr>
+            <td>{{ appointment.appointment_id }}</td>
+            <td>{{ appointment.appointment_date }}</td>
+            <td>{{ appointment.appointment_time }}</td>
+            <td>{{ appointment.status }}</td> <!-- Just display the status without wrapping it in the span -->
+            <td>{{ appointment.reason }}</td>
+            <td>
+                <a href="{{ url_for('appointment.appointment', appointment_id=appointment.appointment_id) }}" class="button-link">View</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>No appointments found.</p>
+{% endif %}
 {% endblock %}
