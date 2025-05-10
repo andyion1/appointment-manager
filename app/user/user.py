@@ -2,6 +2,7 @@ from flask import flash, request
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from models.database import db
+from datetime import datetime
 import pdb
 
 class User(UserMixin):
@@ -123,10 +124,18 @@ class Student(User):
 
         return None
 
+    #@staticmethod
+    #def get_student_by_user_id(user_id):
+     #   """Fetches a student by their user ID"""
+      #  return db.get_student(f"user_id = {user_id}")
+    
     @staticmethod
-    def get_student_by_user_id(user_id):
-        """Fetches a student by their user ID"""
-        return db.get_student(f"user_id = {user_id}")
+    def get_student_by_user_name(username):
+        """Fetches a student by their username"""
+        user = User.get_user_by_username(username)
+        if user:
+            return db.get_student(f"username = '{username}'")
+        return None
 
 
 class Teacher(User):
@@ -155,7 +164,6 @@ class Teacher(User):
                 department,
                 office_location
             )
-            pdb.set_trace()
             db.add_teacher(teacher)
             return Teacher.get_teacher_by_user_id(user.user_id)
 
@@ -165,7 +173,18 @@ class Teacher(User):
     @staticmethod
     def get_teacher_by_user_id(user_id):
         """Fetches a teacher by their user ID"""
-        return db.get_teacher(f"user_id = {user_id}")
+        user = User.get_user_by_id(user_id)
+        if user:
+            return db.get_teacher(f"user_id = {user_id}")
+        return None
+    
+    @staticmethod
+    def get_teacher_by_user_name(username):
+        """Fetches a studteacherent by their username"""
+        user = User.get_user_by_username(username)
+        if user:
+            return db.get_teacher(f"username = '{username}'")
+        return None
 
 
 

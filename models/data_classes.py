@@ -2,12 +2,15 @@
 
 class Appointment:
     def __init__(self, *args):
-        self.user_id = args[0] 
-        self.username = args[1]
-        self.password_hash = args[2]
-        self.email = args[3]
-        self.full_name = args[4]
-        self.role = args[5]
+        self.appointment_id = args[0] 
+        self.student_id = args[1]
+        self.teacher_id = args[2]
+        self.appointment_date = args[3]
+        self.appointment_time = args[4]
+        self.status = args[5]
+        self.reason = args[6]
+        self.created_at = args[7]
+
 
 class Report:
     def __init__(self, *args):
