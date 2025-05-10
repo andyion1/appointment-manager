@@ -134,7 +134,7 @@ class Student(User):
         """Fetches a student by their username"""
         user = User.get_user_by_username(username)
         if user:
-            return db.get_student(f"user_id = {user.user_id}")
+            return db.get_student(f"username = '{username}'")
         return None
 
 
@@ -176,6 +176,7 @@ class Teacher(User):
         """Fetches a teacher by their user ID"""
         return db.get_teacher(f"user_id = {user_id}")
     
+    @staticmethod
     def get_teacher_by_user_name(self, username):
         """Fetches a teacher by their username"""
         return db.get_teacher(f"username = '{username}'")

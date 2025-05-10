@@ -192,18 +192,24 @@ class Database:
 
 
     def get_student(self, cond):
-        '''Returns a Student object based on the provided condition'''
+        '''Returns a Student object based on a condition (e.g., student_id = 3)'''
         from app.user.user import Student
-        qry = f"SELECT * FROM Student WHERE {cond}"
+        qry = f"""
+            SELECT u.user_id, u.username, u.password_hash, u.email, u.full_name, u.role, u.user_image,
+                s.student_id, s.program, s.student_number
+            FROM USER_PROJ u
+            JOIN Student s ON u.user_id = s.user_id
+            WHERE {cond}
+        """
         with self.get_cursor() as curr:
             try:
                 curr.execute(qry)
-                student_data = curr.fetchone()
-                if student_data:
-                    return Student(*student_data)
+                data = curr.fetchone()
+                if data:
+                    return Student(*data)
                 return None
             except Exception as e:
-                print(e)
+                print("get_student error:", e)
                 return None
     def get_students(self):
         from app.user.user import Student

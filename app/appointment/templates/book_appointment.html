@@ -13,6 +13,7 @@
             {% if current_user.role == 'student' %}
                 {{ form.teacher.label(class="form-label") }}
                 {{ form.teacher(class="form-control") }}
+                {{form.student(class="form-control", value=current_user.username, style="display: none;")}} 
                 {% if form.teacher.errors %}
                     <ul class="errors">
                         {% for error in form.teacher.errors %}
