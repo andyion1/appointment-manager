@@ -124,10 +124,10 @@ class Student(User):
 
         return None
 
-    @staticmethod
-    def get_student_by_user_id(user_id):
-        """Fetches a student by their user ID"""
-        return db.get_student(f"user_id = {user_id}")
+    #@staticmethod
+    #def get_student_by_user_id(user_id):
+     #   """Fetches a student by their user ID"""
+      #  return db.get_student(f"user_id = {user_id}")
     
     @staticmethod
     def get_student_by_user_name(username):
@@ -164,7 +164,6 @@ class Teacher(User):
                 department,
                 office_location
             )
-            pdb.set_trace()
             db.add_teacher(teacher)
             return Teacher.get_teacher_by_user_id(user.user_id)
 
@@ -172,14 +171,17 @@ class Teacher(User):
 
     
     @staticmethod
-    def get_teacher_by_user_id(user_id):
-        """Fetches a teacher by their user ID"""
-        return db.get_teacher(f"user_id = {user_id}")
+    #def get_teacher_by_user_id(user_id):
+     #   """Fetches a teacher by their user ID"""
+      #  return db.get_teacher(f"user_id = {user_id}")
     
     @staticmethod
-    def get_teacher_by_user_name(self, username):
-        """Fetches a teacher by their username"""
-        return db.get_teacher(f"username = '{username}'")
+    def get_teacher_by_user_name(username):
+        """Fetches a studteacherent by their username"""
+        user = User.get_user_by_username(username)
+        if user:
+            return db.get_teacher(f"username = '{username}'")
+        return None
 
 
 

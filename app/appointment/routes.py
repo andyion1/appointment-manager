@@ -14,14 +14,14 @@ appointmentBlueprint = Blueprint("appointment", __name__, template_folder='templ
 def appointments():
     # Get appointments based on user role
     if current_user.role == 'student':
-        student = Student.get_student_by_user_id(current_user.user_id)
+        student = Student.get_student_by_user_name(current_user.username)
         if student:
             appointments = db.get_appointments(f"student_id = {student.student_id}")
         else:
             appointments = []
             
     elif current_user.role == 'teacher':
-        teacher = Teacher.get_teacher_by_user_id(current_user.user_id)
+        teacher = Teacher.get_teacher_by_user_name(current_user.username)
         if teacher:
             appointments = db.get_appointments(f"teacher_id = {teacher.teacher_id}")
         else:
@@ -52,11 +52,11 @@ def appointment(appointment_id):
     if current_user.role in ['admin_appoint', 'admin_super']:
         has_permission = True
     elif current_user.role == 'student':
-        student = Student.get_student_by_user_id(current_user.user_id)
+        student = Student.get_student_by_user_name(current_user.username)
         if student and student.student_id == appointment.student_id:
             has_permission = True
     elif current_user.role == 'teacher':
-        teacher = Teacher.get_teacher_by_user_id(current_user.user_id)
+        teacher = Teacher.get_teacher_by_user_name(current_user.username)
         if teacher and teacher.teacher_id == appointment.teacher_id:
             has_permission = True
     
@@ -94,7 +94,7 @@ def update_status(appointment_id):
     if current_user.role in ['admin_appoint', 'admin_super']:
         has_permission = True
     elif current_user.role == 'teacher':
-        teacher = Teacher.get_teacher_by_user_id(current_user.user_id)
+        teacher = Teacher.get_teacher_by_user_name(current_user.username)
         if teacher and teacher.teacher_id == appointment.teacher_id:
             has_permission = True
     
@@ -125,11 +125,11 @@ def form():
     students = sorted(students, key=lambda s: s.full_name.lower())
     teachers = sorted(teachers, key=lambda t: t.department.lower() if t.department else "")
 
-    form.teacher.choices = [(t.user_id, f"{t.department} - {t.full_name}") for t in teachers]
-    form.student.choices = [(s.user_id, s.full_name) for s in students]
+    form.teacher.choices = [(t.teacher_id, f"{t.department} - {t.full_name}") for t in teachers]
+    form.student.choices = [(s.student_id, s.full_name) for s in students]
 
     print("Current user:", current_user.username)
-
+    print("teacher data:", form.teacher.data)
     if form.validate_on_submit():
         if current_user.role == 'student':
             new_appointment = Appointment(
@@ -145,7 +145,7 @@ def form():
         else:
             new_appointment = Appointment(
                 0,
-                form.student.data,  # <-- fixed typo
+                form.student.data,
                 Teacher.get_teacher_by_user_name(current_user.username).teacher_id,
                 form.date.data,
                 form.time.data,

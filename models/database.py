@@ -133,7 +133,6 @@ class Database:
         """
         with self.get_cursor() as curr:
             try:
-                pdb.set_trace()
                 curr.execute(qry, (teacher.user_id, teacher.department, teacher.office_location))
             except Exception as e:
                 print("add_teacher error:", e)
@@ -280,10 +279,14 @@ class Database:
             try:
                 curr.execute(qry)
                 data = curr.fetchall()
-                return [Appointment(*row) for row in data] if data else []
+                appointments = []
+                for appointment in data:
+                    appointments.append(Appointment(appointment[0], appointment[1], appointment[2], appointment[3], appointment[6], appointment[4], appointment[7], appointment[5]))
+                return appointments if data else []
             except Exception as e:
                 print("get_appointments error:", e)
                 return []
+
 
     def get_appointments_with_details(self, cond=None):
         '''Returns appointments with student and teacher names'''
