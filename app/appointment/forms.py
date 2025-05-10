@@ -14,7 +14,7 @@ class AppointmentStatusForm(FlaskForm):
     status = SelectField('Status', choices=[
         ('pending', 'Pending'),
         ('approved', 'Approved'),
-        ('in Progress', 'In Progress'),
+        ('in progress', 'In Progress'),
         ('completed', 'Completed'),
         ('cancelled', 'Cancelled')
     ], validators=[DataRequired()])
