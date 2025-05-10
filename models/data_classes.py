@@ -1,13 +1,16 @@
 # Might make user related stuff after.
 
 class Appointment:
-    def __init__(self, *args):
-        self.user_id = args[0] 
-        self.username = args[1]
-        self.password_hash = args[2]
-        self.email = args[3]
-        self.full_name = args[4]
-        self.role = args[5]
+    def __init__(self, appointment_id, student_name, teacher_name, appointment_date, status, created_at, appointment_time, reason):
+        self.appointment_id = appointment_id
+        self.student_name = student_name
+        self.teacher_name = teacher_name
+        self.appointment_date = appointment_date
+        self.status = status
+        self.created_at = created_at
+        self.appointment_time = appointment_time
+        self.reason = reason
+
 
 class Report:
     def __init__(self, *args):

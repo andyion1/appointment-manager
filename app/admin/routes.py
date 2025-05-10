@@ -38,3 +38,22 @@ def delete_user(user_id):
     db.delete_user(user_id)
     flash("User deleted.", "success")
     return render_template("appointments.html", logo="static/images/logo.PNG", css="static/css/style.css")
+
+@adminBlueprint.route("/manage_appoint")
+@login_required
+def manage_appoint():
+    if current_user.role not in ['admin_appoint', 'superuser']:
+        flash("Access denied: You do not have permission to view this page.", "danger")
+        return redirect(url_for("main.index"))
+    appointments = db.get_all_appointments()
+    return render_template("manage_appoint.html", logo="static/images/logo.PNG", css="static/css/style.css", appointments=appointments)
+
+@adminBlueprint.route("/appointments/<int:appointment_id>")
+@login_required
+def view_appointment(appointment_id):
+    if current_user.role not in ['admin_appoint', 'superuser']:
+        flash("Access denied", "danger")
+        return redirect(url_for("main.index"))
+
+    appointment = db.get_appointment_by_id(appointment_id)
+    return render_template("appointment_detail.html", appointment=appointment, logo="static/images/logo.PNG", css="static/css/style.css")

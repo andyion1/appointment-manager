@@ -3,6 +3,7 @@ import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import psycopg2
 from config import Config 
+from .data_classes import Appointment, Report
 import pdb
 
 class Database:
@@ -205,6 +206,52 @@ class Database:
             except Exception as e:
                 print(e)
                 return None
+            
+    def get_all_appointments(self):
+        query = """
+            SELECT
+                a.appointment_id,
+                s.full_name AS student_name,
+                t_u.full_name AS teacher_name,
+                a.appointment_date,
+                a.status,
+                a.created_at,
+                a.appointment_time,
+                a.reason
+            FROM appointment a
+            JOIN user_proj s ON a.student_id = s.user_id
+            LEFT JOIN teacher t ON a.teacher_id = t.teacher_id
+            LEFT JOIN user_proj t_u ON t.user_id = t_u.user_id;
+        """
+        with self.get_cursor() as curr:
+            try:
+                curr.execute(query)
+                rows = curr.fetchall()
+                return [Appointment(*row) for row in rows]
+            except Exception as e:
+                print("Error fetching appointments:", e)
+                return []
+
+            
+    def get_appointment_by_id(self, appointment_id):
+        query = """
+            SELECT a.appointment_id, a.date, a.time, 
+                s.full_name AS student_name, 
+                t.full_name AS teacher_name
+            FROM appointment a
+            JOIN user_proj s ON a.student_id = s.user_id
+            JOIN user_proj t ON a.teacher_id = t.user_id
+            WHERE a.appointment_id = %s
+        """
+        with self.get_cursor() as curr:
+            try:
+                curr.execute(query, (appointment_id,))
+                return curr.fetchone()
+            except Exception as e:
+                print("Error fetching appointment by ID:", e)
+                return None
+
+
 # ===========================================================================
 db = Database()
 
