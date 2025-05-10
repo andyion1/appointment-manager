@@ -4,7 +4,7 @@ class Config:
     name = os.environ.get('DATABASE_NAME', 'db_proj')
     user = os.environ.get('DATABASE_USER', '')
     password = os.environ.get('DATABASE_PASSWORD', '')
-    host = os.environ.get('DATABASE_HOST', 'dc303.dawsoncollege.qc.ca')
+    host = os.environ.get('DATABASE_HOST', 'cspostgres')
     port = os.environ.get('DATABASE_PORT', '5432')
     
     SECRET_KEY = 'dev_key_for_development_only'
