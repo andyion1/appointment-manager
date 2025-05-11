@@ -159,3 +159,79 @@ def create(appointment_id):
         form=form,
         appointment=appointment,
         appointment_detail=appointment_detail)
+
+
+@reportBlueprint.route("/report/<int:report_id>/update", methods=["POST"])
+@login_required
+def update(report_id):
+    """Update an existing report"""
+    report = db.get_report(f"report_id = {report_id}")
+    
+    if not report:
+        flash("Report not found", "danger")
+        return redirect(url_for('report.view'))
+    
+    # Check permissions
+    has_permission = False
+    
+    if current_user.role in ['admin_appoint', 'superuser']:
+        has_permission = True
+    else:
+        # Get the appointment related to this report
+        appointment = db.get_appointment(f"appointment_id = {report.appointment_id}")
+        
+        if appointment:
+            if current_user.role == 'student':
+                student = db.get_student(f"user_id = {current_user.user_id}")
+                if student and student.student_id == appointment.student_id:
+                    has_permission = True
+            elif current_user.role == 'teacher':
+                teacher = db.get_teacher(f"user_id = {current_user.user_id}")
+                if teacher and teacher.teacher_id == appointment.teacher_id:
+                    has_permission = True
+    
+    if not has_permission:
+        flash("You don't have permission to update this report", "danger")
+        return redirect(url_for('report.view'))
+    
+    form = ReportForm()
+    
+    if form.validate_on_submit():
+        updates = {
+            'content': form.content.data
+        }
+        
+        # Only update feedback if user is a student or admin
+        if current_user.role == 'student' or current_user.role in ['admin_appoint', 'superuser']:
+            updates['feedback'] = form.feedback.data
+        
+        # Only update teacher_response if user is a teacher or admin
+        if current_user.role == 'teacher' or current_user.role in ['admin_appoint', 'superuser']:
+            updates['teacher_response'] = form.teacher_response.data
+        
+        success = db.update_report(report_id, updates)
+        
+        if success:
+            flash("Report updated successfully!", "success")
+        else:
+            flash("Failed to update report", "danger")
+    
+    return redirect(url_for('report.report', report_id=report_id))
+
+@reportBlueprint.route("/report/<int:report_id>/delete", methods=["POST"])
+@login_required
+def delete(report_id):
+    """Delete a report"""
+    # Only admin users can delete reports
+    if current_user.role not in ['admin_appoint', 'superuser']:
+        flash("You don't have permission to delete reports", "danger")
+        return redirect(url_for('report.view'))
+    
+    success = db.delete_report(report_id)
+    
+    if success:
+        flash("Report deleted successfully!", "success")
+    else:
+        flash("Failed to delete report", "danger")
+    
+    return redirect(url_for('report.view'))
