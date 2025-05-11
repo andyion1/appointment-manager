@@ -65,7 +65,7 @@
 
     {% if appointment.status == "completed" %}
     <div class="appointment-report-links">
-        {% set report = db.get_report("appointment_id = " + appointment.appointment_id|string) %}
+        {% set report = db.get_report("appointment_id = " ~ appointment.appointment_id) %}
         {% if report %}
             <a href="{{ url_for('report.report', report_id=report.report_id) }}" class="button-link">View Report</a>
         {% else %}
@@ -73,6 +73,6 @@
         {% endif %}
     </div>
     {% endif %}
-    
+
 </div>
 {% endblock %}
