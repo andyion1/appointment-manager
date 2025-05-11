@@ -379,6 +379,50 @@ class Database:
             except Exception as e:
                 print("add_report error:", e)
                 return None
+            
+
+    def get_reports(self, cond=None):
+        '''Returns all reports as Report objects, with optional condition'''
+        from models.data_classes import Report
+        qry = "SELECT * FROM REPORT"
+        if cond:
+            qry += f" WHERE {cond}"
+        qry += " ORDER BY created_at DESC"
+        
+        with self.get_cursor() as curr:
+            try:
+                curr.execute(qry)
+                data = curr.fetchall()
+                return [Report(*row) for row in data] if data else []
+            except Exception as e:
+                print("get_reports error:", e)
+                return []
+
+    def get_reports_with_details(self, cond=None):
+        '''Returns reports with appointment, student and teacher details'''
+        qry = """
+            SELECT r.report_id, r.appointment_id, r.generated_by, r.content, 
+                r.created_at, r.feedback, r.teacher_response,
+                a.appointment_date, a.appointment_time, a.status,
+                su.full_name as student_name, tu.full_name as teacher_name
+            FROM REPORT r
+            JOIN APPOINTMENT a ON r.appointment_id = a.appointment_id
+            JOIN STUDENT s ON a.student_id = s.student_id
+            JOIN TEACHER t ON a.teacher_id = t.teacher_id
+            JOIN USER_PROJ su ON s.user_id = su.user_id
+            JOIN USER_PROJ tu ON t.user_id = tu.user_id
+        """
+        if cond:
+            qry += f" WHERE {cond}"
+        qry += " ORDER BY r.created_at DESC"
+        
+        with self.get_cursor() as curr:
+            try:
+                curr.execute(qry)
+                return curr.fetchall()
+            except Exception as e:
+                print("get_reports_with_details error:", e)
+                return []
 # ===========================================================================
 db = Database()
 
