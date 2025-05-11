@@ -1,7 +1,7 @@
-from flask import flash, render_template, redirect, url_for, Blueprint
+from flask import flash, render_template, redirect, request, url_for, Blueprint
 from app.user.user import User
 from flask_login import current_user, login_required
-from models.data_classes import Appointment
+from models.data_classes import Appointment, Report
 from models.database import db
 import pdb
 
@@ -104,7 +104,43 @@ def dashboard():
 
     user_count = len(db.get_users())
     appoint_count = len(db.get_appointments_with_details())
-    report_count = 0 # need change when reports are added
+    report_count = len(db.get_reports())
     admin_users = [u for u in db.get_users() if u[5] in ['admin_user', 'admin_appoint', 'superuser']]  # role at index 5
 
     return render_template("dashboard.html", user_count=user_count, appoint_count=appoint_count, report_count=report_count, admin_users=admin_users, logo="static/images/logo.PNG", css="static/css/style.css")
+
+@adminBlueprint.route('/manage-reports')
+@login_required
+def manage_reports():
+    if current_user.role not in ['admin_appoint', 'superuser']:
+        flash("Access denied", "danger")
+        return redirect(url_for('main.index'))
+    raw = db.get_reports()
+    reports = [Report(*r) for r in raw]
+    return render_template("manage_reports.html", reports=reports, logo="static/images/logo.PNG", css="static/css/style.css")
+
+@adminBlueprint.route('/reports/<int:report_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_report(report_id):
+    if current_user.role not in ['admin_appoint', 'superuser']:
+        flash("Access denied", "danger")
+        return redirect(url_for('main.index'))
+    if request.method == 'POST':
+        content = request.form.get("content")
+        db.update_report(report_id, content)
+        flash("Report updated.", "success")
+        return redirect(url_for('admin.manage_reports'))
+    report = db.get_reports(f"report_id = {report_id}")
+    return render_template("report_edit.html", report=report[0])
+
+
+@adminBlueprint.route('/reports/<int:report_id>/delete', methods=['POST'])
+@login_required
+def delete_report(report_id):
+    if current_user.role not in ['admin_appoint', 'superuser']:
+        flash("Access denied", "danger")
+        return redirect(url_for('main.index'))
+    db.delete_report(report_id)
+    flash("Report deleted.", "info")
+    return redirect(url_for('admin.manage_reports'))
+

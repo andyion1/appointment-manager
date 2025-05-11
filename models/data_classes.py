@@ -13,15 +13,14 @@ class Appointment:
         self.appointment_time = appointment_time
         self.reason = reason
         self.student_name = student_name
-        self.teacher_name = teacher_name
+        self.teacher_name = teacher_name    
 
 
 class Report:
-    def __init__(self, *args):
-        self.report_id = args[0]
-        self.appointment_id = args[1]
-        self.generated_by = args[2] 
-        self.content = args[3]
-        self.created_at = args[4]
-        self.feedback = args[5] 
-        self.teacher_response = args[6]
+    def __init__(self, report_id, appointment_id, author_id, content, created_at, updated_at):
+        self.report_id = report_id
+        self.appointment_id = appointment_id
+        self.author_id = author_id
+        self.content = content
+        self.created_at = created_at
+        self.updated_at = updated_at

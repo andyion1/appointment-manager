@@ -299,7 +299,7 @@ class Database:
         qry += " ORDER BY appointment_date DESC, appointment_time ASC"
         
         with self.get_cursor() as curr:
-            try:
+            try:    
                 curr.execute(qry)
                 data = curr.fetchall()
                 appointments = []
