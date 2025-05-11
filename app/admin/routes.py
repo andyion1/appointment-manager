@@ -93,3 +93,18 @@ def toggle_block_user(user_id):
     db.update_user(user_id, {'status': new_status})
     flash(f"User has been {'blocked' if new_status == 'blocked' else 'unblocked'}.", "info")
     return redirect(url_for('admin.view_user', user_id=user_id))
+
+
+@adminBlueprint.route("/admin/dashboard")
+@login_required
+def dashboard():
+    if current_user.role != 'superuser':
+        flash("Access denied", "danger")
+        return redirect(url_for('main.home'))
+
+    user_count = len(db.get_users())
+    appoint_count = len(db.get_appointments_with_details())
+    report_count = 0 # need change when reports are added
+    admin_users = [u for u in db.get_users() if u[5] in ['admin_user', 'admin_appoint', 'superuser']]  # role at index 5
+
+    return render_template("dashboard.html", user_count=user_count, appoint_count=appoint_count, report_count=report_count, admin_users=admin_users, logo="static/images/logo.PNG", css="static/css/style.css")
