@@ -342,6 +342,43 @@ class Database:
             except Exception as e:
                 print("delete_appointment error:", e)
                 return False
+            
+    def get_report(self, cond):
+        '''Returns a Report object based on the provided condition'''
+        from models.data_classes import Report
+        qry = f"SELECT * FROM REPORT WHERE {cond}"
+        with self.get_cursor() as curr:
+            try:
+                curr.execute(qry)
+                data = curr.fetchone()
+                if data:
+                    return Report(*data)
+                return None
+            except Exception as e:
+                print(f"get_report error: {e}")
+                return None
+
+    def add_report(self, report):
+        '''Add a report to the database'''
+        qry = """
+            INSERT INTO REPORT (appointment_id, generated_by, content, feedback, teacher_response)
+            VALUES (%s, %s, %s, %s, %s)
+            RETURNING report_id
+        """
+        with self.get_cursor() as curr:
+            try:
+                curr.execute(qry, (
+                    report.appointment_id, 
+                    report.generated_by, 
+                    report.content,
+                    report.feedback,
+                    report.teacher_response
+                ))
+                report_id = curr.fetchone()[0]
+                return report_id
+            except Exception as e:
+                print("add_report error:", e)
+                return None
 # ===========================================================================
 db = Database()
 
