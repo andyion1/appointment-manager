@@ -231,7 +231,6 @@ class Database:
 
     def get_appointment(self, cond):
         '''Returns an Appointment object based on the provided condition'''
-        from models.data_classes import Appointment
         qry = f"SELECT * FROM APPOINTMENT WHERE {cond}"
         with self.get_cursor() as curr:
             try:
@@ -308,7 +307,8 @@ class Database:
         with self.get_cursor() as curr:
             try:
                 curr.execute(qry)
-                return curr.fetchall()
+                appointments = [Appointment(*row) for row in curr.fetchall()]
+                return appointments
             except Exception as e:
                 print("get_appointments_with_details error:", e)
                 return []

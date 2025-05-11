@@ -45,7 +45,7 @@ def manage_appoint():
     if current_user.role not in ['admin_appoint', 'superuser']:
         flash("Access denied: You do not have permission to view this page.", "danger")
         return redirect(url_for("main.index"))
-    appointments = db.get_all_appointments()
+    appointments = db.get_appointments_with_details()
     return render_template("manage_appoint.html", logo="static/images/logo.PNG", css="static/css/style.css", appointments=appointments)
 
 @adminBlueprint.route("/appointments/<int:appointment_id>")
@@ -55,5 +55,5 @@ def view_appointment(appointment_id):
         flash("Access denied", "danger")
         return redirect(url_for("main.index"))
 
-    appointment = db.get_appointment_by_id(appointment_id)
+    appointment = db.get_appointment(f"appointment_id=={appointment_id}")
     return render_template("appointment_detail.html", appointment=appointment, logo="static/images/logo.PNG", css="static/css/style.css")
