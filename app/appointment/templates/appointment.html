@@ -55,17 +55,15 @@
     {% endif %}
 
     {% if appointment.status == "completed" %}
-        <div class="appointment-report-links mt-4">
-            {% if report_exists %}
-                <a href="{{ url_for('report.report', report_id=report.report_id) }}" class="btn btn-outline-info">
-                    View Report
-                </a>
-            {% else %}
-                <a href="{{ url_for('report.create', appointment_id=appointment.appointment_id) }}" class="btn btn-success">
-                    Create Report
-                </a>
+    <div class="appointment-report-links">
+        {% if report %}
+            <a href="{{ url_for('report.report', report_id=report.report_id) }}" class="button-link">View Report</a>
+        {% else %}
+            {% if current_user.role in ['teacher', 'student'] %}
+                <a href="{{ url_for('report.create', appointment_id=appointment.appointment_id) }}" class="button-link">Create Report</a>
             {% endif %}
-        </div>
+        {% endif %}
+    </div>
     {% endif %}
     
     <div class="back-link mt-4">

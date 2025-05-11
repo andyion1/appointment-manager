@@ -1,5 +1,7 @@
 import os
 import sys
+
+from models.data_classes import Appointment
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import psycopg2
 from config import Config 
@@ -99,7 +101,8 @@ class Database:
     def get_user(self, cond):
         '''Returns a User object based on the provided user_id'''
         from app.user.user import User
-        qry = f"SELECT * FROM USER_PROJ WHERE {cond}"
+        qry = f"SELECT user_id, username, password_hash, email, full_name, role, user_image, status, warned FROM USER_PROJ WHERE {cond}"
+
         with self.get_cursor() as curr:
             try:
                 curr.execute(qry)
@@ -111,13 +114,22 @@ class Database:
                 print(e)
     
     def update_user(self, id, updates):
-        qry = f"update user_proj set full_name = '{updates['full_name']}', email = '{updates['email']}', user_image = '{updates['user_image']}' where user_id = '{id}'"
-        with self.__connection.cursor() as curr:
+        set_clauses = []
+        for key, value in updates.items():
+            if isinstance(value, str):
+                set_clauses.append(f"{key} = '{value}'")
+            elif isinstance(value, bool):
+                set_clauses.append(f"{key} = {'TRUE' if value else 'FALSE'}")
+            else:
+                set_clauses.append(f"{key} = {value}")
+        
+        set_clause = ", ".join(set_clauses)
+        qry = f"UPDATE USER_PROJ SET {set_clause} WHERE user_id = {id}"
+        with self.get_cursor() as curr:
             try:
-                res = curr.execute(qry)
-                self.__connection.commit()
+                curr.execute(qry)
             except Exception as e:
-                print(e)
+                print("update_user error:", e)
 
     def delete_user(self, user_id):
         qry = "DELETE FROM USER_PROJ WHERE user_id = %s"
@@ -229,9 +241,20 @@ class Database:
                 return []
 
     def get_appointment(self, cond):
-        '''Returns an Appointment object based on the provided condition'''
-        from models.data_classes import Appointment
-        qry = f"SELECT * FROM APPOINTMENT WHERE {cond}"
+        '''Returns an Appointment object with student and teacher names'''
+        qry = f"""
+            SELECT a.appointment_id, a.student_id, a.teacher_id, 
+                a.appointment_date, a.status, a.created_at, 
+                a.appointment_time, a.reason,
+                su.full_name AS student_name, 
+                tu.full_name AS teacher_name
+            FROM appointment a
+            JOIN student s ON a.student_id = s.student_id
+            JOIN teacher t ON a.teacher_id = t.teacher_id
+            JOIN user_proj su ON s.user_id = su.user_id
+            JOIN user_proj tu ON t.user_id = tu.user_id
+            WHERE {cond}
+        """
         with self.get_cursor() as curr:
             try:
                 curr.execute(qry)
@@ -242,6 +265,7 @@ class Database:
             except Exception as e:
                 print(f"get_appointment error: {e}")
                 return None
+
     
     def add_appointment(self, appointment):
         '''Add an appointment to the database'''
@@ -276,7 +300,7 @@ class Database:
         qry += " ORDER BY appointment_date DESC, appointment_time ASC"
         
         with self.get_cursor() as curr:
-            try:
+            try:    
                 curr.execute(qry)
                 data = curr.fetchall()
                 appointments = []
@@ -307,10 +331,42 @@ class Database:
         with self.get_cursor() as curr:
             try:
                 curr.execute(qry)
-                return curr.fetchall()
+                appointments = [Appointment(*row) for row in curr.fetchall()]
+                return appointments
             except Exception as e:
                 print("get_appointments_with_details error:", e)
                 return []
+            
+    def get_appointment_with_details(self, cond):
+        '''Returns a single Appointment object with student and teacher full names'''
+        qry = f"""
+            SELECT a.appointment_id, a.student_id, a.teacher_id, 
+                a.appointment_date, a.appointment_time, a.status, 
+                a.reason, a.created_at,
+                su.full_name as student_name, 
+                tu.full_name as teacher_name
+            FROM APPOINTMENT a
+            JOIN STUDENT s ON a.student_id = s.student_id
+            JOIN TEACHER t ON a.teacher_id = t.teacher_id
+            JOIN USER_PROJ su ON s.user_id = su.user_id
+            JOIN USER_PROJ tu ON t.user_id = tu.user_id
+            WHERE {cond}
+        """
+        with self.get_cursor() as curr:
+            try:
+                curr.execute(qry)
+                row = curr.fetchone()
+                if row:
+                    # first 8 values go into constructor
+                    appointment = Appointment(*row[:8])
+                    # set optional name fields
+                    appointment.student_name = row[8]
+                    appointment.teacher_name = row[9]
+                    return appointment
+                return None
+            except Exception as e:
+                print(f"get_appointment_with_details error: {e}")
+                return None
 
     def update_appointment(self, appointment_id, updates):
         '''Update an appointment in the database'''
@@ -342,6 +398,15 @@ class Database:
             except Exception as e:
                 print("delete_appointment error:", e)
                 return False
+            
+    def get_reports(self, cond=None):
+        qry = "SELECT * FROM REPORT"
+        if cond:
+            qry += f" WHERE {cond}"
+        qry += " ORDER BY created_at DESC"
+        with self.get_cursor() as curr:
+            curr.execute(qry)
+            return curr.fetchall()
             
     def get_report(self, cond):
         '''Returns a Report object based on the provided condition'''
@@ -379,81 +444,7 @@ class Database:
             except Exception as e:
                 print("add_report error:", e)
                 return None
-            
 
-    def get_reports(self, cond=None):
-        '''Returns all reports as Report objects, with optional condition'''
-        from models.data_classes import Report
-        qry = "SELECT * FROM REPORT"
-        if cond:
-            qry += f" WHERE {cond}"
-        qry += " ORDER BY created_at DESC"
-        
-        with self.get_cursor() as curr:
-            try:
-                curr.execute(qry)
-                data = curr.fetchall()
-                return [Report(*row) for row in data] if data else []
-            except Exception as e:
-                print("get_reports error:", e)
-                return []
-
-    def get_reports_with_details(self, cond=None):
-        '''Returns reports with appointment, student and teacher details'''
-        qry = """
-            SELECT r.report_id, r.appointment_id, r.generated_by, r.content, 
-                r.created_at, r.feedback, r.teacher_response,
-                a.appointment_date, a.appointment_time, a.status,
-                su.full_name as student_name, tu.full_name as teacher_name
-            FROM REPORT r
-            JOIN APPOINTMENT a ON r.appointment_id = a.appointment_id
-            JOIN STUDENT s ON a.student_id = s.student_id
-            JOIN TEACHER t ON a.teacher_id = t.teacher_id
-            JOIN USER_PROJ su ON s.user_id = su.user_id
-            JOIN USER_PROJ tu ON t.user_id = tu.user_id
-        """
-        if cond:
-            qry += f" WHERE {cond}"
-        qry += " ORDER BY r.created_at DESC"
-        
-        with self.get_cursor() as curr:
-            try:
-                curr.execute(qry)
-                return curr.fetchall()
-            except Exception as e:
-                print("get_reports_with_details error:", e)
-                return []
-            
-    def update_report(self, report_id, updates):
-        '''Update a report in the database'''
-        set_clauses = []
-        for key, value in updates.items():
-            if isinstance(value, str):
-                set_clauses.append(f"{key} = '{value}'")
-            else:
-                set_clauses.append(f"{key} = {value}")
-        
-        set_clause = ", ".join(set_clauses)
-        qry = f"UPDATE REPORT SET {set_clause} WHERE report_id = {report_id}"
-        
-        with self.get_cursor() as curr:
-            try:
-                curr.execute(qry)
-                return True
-            except Exception as e:
-                print("update_report error:", e)
-                return False
-
-    def delete_report(self, report_id):
-        '''Delete a report from the database'''
-        qry = f"DELETE FROM REPORT WHERE report_id = {report_id}"
-        with self.get_cursor() as curr:
-            try:
-                curr.execute(qry)
-                return True
-            except Exception as e:
-                print("delete_report error:", e)
-                return False
 # ===========================================================================
 db = Database()
 

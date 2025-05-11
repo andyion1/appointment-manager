@@ -40,16 +40,12 @@ def appointments():
 @appointmentBlueprint.route("/appointment/<int:appointment_id>")
 @login_required
 def appointment(appointment_id):
-    # Get appointment with student/teacher names
-    appointments = db.get_appointments_with_details(f"a.appointment_id = {appointment_id}")
-
-    if not appointments:
+    appointment = db.get_appointment_with_details(f"a.appointment_id = {appointment_id}")
+    if not appointment:
         flash("Appointment not found", "danger")
         return redirect(url_for('appointment.appointments'))
 
-    appointment = appointments[0]  # Get the actual Appointment object
-
-    # Permission check
+    # Check permissions
     has_permission = False
     if current_user.role in ['admin_appoint', 'admin_super']:
         has_permission = True
@@ -66,19 +62,14 @@ def appointment(appointment_id):
         flash("You don't have permission to view this appointment", "danger")
         return redirect(url_for('appointment.appointments'))
 
-    # You don't need separate student/teacher lookups anymore!
     form = AppointmentStatusForm()
-
-    # Fetch report info
-    report = db.get_report(f"appointment_id = {appointment_id}")
-    report_exists = report is not None
+    report = db.get_report(f"appointment_id = {appointment.appointment_id}")
 
     return render_template(
         "appointment.html",
         appointment=appointment,
         status_form=form,
-        report=report,
-        report_exists=report_exists
+        report=report
     )
 
 @appointmentBlueprint.route("/appointment/<int:appointment_id>/status", methods=["POST"])
