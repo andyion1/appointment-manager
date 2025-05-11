@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-3">Appointment Details</h2>
+    <div class="card">
+        <div class="card-body">
+            <p><strong>ID:</strong> {{ appointment.appointment_id }}</p>
+            <p><strong>Student ID:</strong> {{ appointment.student_id }}</p>
+            <p><strong>Student Name:</strong> {{ appointment.student_name }}</p>
+            <p><strong>Teacher ID:</strong> {{ appointment.teacher_id }}</p>
+            <p><strong>Teacher Name:</strong> {{ appointment.teacher_name }}</p>
+            <p><strong>Date:</strong> {{ appointment.appointment_date }}</p>
+            <p><strong>Time:</strong> {{ appointment.appointment_time }}</p>
+            <p><strong>Status:</strong> <span class="badge bg-info text-dark">{{ appointment.status }}</span></p>
+            <p><strong>Reason:</strong> {{ appointment.reason }}</p>
+            <p><strong>Created At:</strong> {{ appointment.created_at }}</p>
+        </div>
+    </div>
+    <a href="{{ url_for('admin.manage_appoint') }}" class="btn btn-secondary mt-3">Back to Appointments</a>
+</div>
+{% endblock %}
