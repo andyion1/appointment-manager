@@ -17,13 +17,8 @@
         </div>
         
         <div class="appointment-participants">
-            {% if student %}
-            <p><strong>Student:</strong> {{ student.full_name }}{% if student.program %} ({{ student.program }}){% endif %}</p>
-            {% endif %}
-            
-            {% if teacher %}
-            <p><strong>Teacher:</strong> {{ teacher.full_name }}{% if teacher.department %} ({{ teacher.department }}){% endif %}</p>
-            {% endif %}
+            <p><strong>Student:</strong> {{ appointment.student_name }}</p>
+            <p><strong>Teacher:</strong> {{ appointment.teacher_name }}</p>
         </div>
         
         <div class="appointment-reason">
@@ -35,8 +30,8 @@
             <p><strong>Created at:</strong> {{ appointment.created_at }}</p>
         </div>
     </div>
-    
-    {% if current_user.role == 'teacher' or current_user.role in ['admin_appoint', 'admin_super'] %}
+
+    {% if current_user.role == 'teacher' %}
     <div class="appointment-actions">
         <h3>Update Status</h3>
         <form method="POST" action="{{ url_for('appointment.update_status', appointment_id=appointment.appointment_id) }}">
@@ -58,21 +53,23 @@
         </form>
     </div>
     {% endif %}
-    
-    <div class="back-link">
-        <a href="{{ url_for('appointment.appointments') }}">Back to Appointments</a>
-    </div>
 
     {% if appointment.status == "completed" %}
-    <div class="appointment-report-links">
-        {% set report = db.get_report("appointment_id = " ~ appointment.appointment_id) %}
-        {% if report %}
-            <a href="{{ url_for('report.report', report_id=report.report_id) }}" class="button-link">View Report</a>
-        {% else %}
-            <a href="{{ url_for('report.create', appointment_id=appointment.appointment_id) }}" class="button-link">Create Report</a>
-        {% endif %}
-    </div>
+        <div class="appointment-report-links mt-4">
+            {% if report_exists %}
+                <a href="{{ url_for('report.report', report_id=report.report_id) }}" class="btn btn-outline-info">
+                    View Report
+                </a>
+            {% else %}
+                <a href="{{ url_for('report.create', appointment_id=appointment.appointment_id) }}" class="btn btn-success">
+                    Create Report
+                </a>
+            {% endif %}
+        </div>
     {% endif %}
-
+    
+    <div class="back-link mt-4">
+        <a href="{{ url_for('appointment.appointments') }}">← Back to Appointments</a>
+    </div>
 </div>
 {% endblock %}
