@@ -468,3 +468,28 @@ p.text-muted {
     background-color: #0056b3;
     color: white;
 }
+
+
+
+.flash-message.danger {
+    background-color: #ffdddd;
+    color: #a00;
+    border: 1px solid #a00;
+    padding: 10px;
+    margin: 10px 0;
+}
+
+
+.bg-success {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.bg-danger {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.table-danger {
+    background-color: #f8d7da !important;
+}

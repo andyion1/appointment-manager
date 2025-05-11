@@ -100,7 +100,8 @@ class Database:
     def get_user(self, cond):
         '''Returns a User object based on the provided user_id'''
         from app.user.user import User
-        qry = f"SELECT * FROM USER_PROJ WHERE {cond}"
+        qry = f"SELECT user_id, username, password_hash, email, full_name, role, user_image, status, warned FROM USER_PROJ WHERE {cond}"
+
         with self.get_cursor() as curr:
             try:
                 curr.execute(qry)
@@ -112,13 +113,22 @@ class Database:
                 print(e)
     
     def update_user(self, id, updates):
-        qry = f"update user_proj set full_name = '{updates['full_name']}', email = '{updates['email']}', user_image = '{updates['user_image']}' where user_id = '{id}'"
-        with self.__connection.cursor() as curr:
+        set_clauses = []
+        for key, value in updates.items():
+            if isinstance(value, str):
+                set_clauses.append(f"{key} = '{value}'")
+            elif isinstance(value, bool):
+                set_clauses.append(f"{key} = {'TRUE' if value else 'FALSE'}")
+            else:
+                set_clauses.append(f"{key} = {value}")
+        
+        set_clause = ", ".join(set_clauses)
+        qry = f"UPDATE USER_PROJ SET {set_clause} WHERE user_id = {id}"
+        with self.get_cursor() as curr:
             try:
-                res = curr.execute(qry)
-                self.__connection.commit()
+                curr.execute(qry)
             except Exception as e:
-                print(e)
+                print("update_user error:", e)
 
     def delete_user(self, user_id):
         qry = "DELETE FROM USER_PROJ WHERE user_id = %s"
@@ -230,8 +240,20 @@ class Database:
                 return []
 
     def get_appointment(self, cond):
-        '''Returns an Appointment object based on the provided condition'''
-        qry = f"SELECT * FROM APPOINTMENT WHERE {cond}"
+        '''Returns an Appointment object with student and teacher names'''
+        qry = f"""
+            SELECT a.appointment_id, a.student_id, a.teacher_id, 
+                a.appointment_date, a.status, a.created_at, 
+                a.appointment_time, a.reason,
+                su.full_name AS student_name, 
+                tu.full_name AS teacher_name
+            FROM appointment a
+            JOIN student s ON a.student_id = s.student_id
+            JOIN teacher t ON a.teacher_id = t.teacher_id
+            JOIN user_proj su ON s.user_id = su.user_id
+            JOIN user_proj tu ON t.user_id = tu.user_id
+            WHERE {cond}
+        """
         with self.get_cursor() as curr:
             try:
                 curr.execute(qry)
@@ -242,6 +264,7 @@ class Database:
             except Exception as e:
                 print(f"get_appointment error: {e}")
                 return None
+
     
     def add_appointment(self, appointment):
         '''Add an appointment to the database'''

@@ -14,6 +14,9 @@ def list_users():
         flash("Access denied", "danger")
         return redirect(url_for('main.index'))
     raw_users = db.get_users()
+    if current_user.role == 'admin_user':
+        raw_users = [u for u in raw_users if u[5] in ['student', 'teacher']]
+
     users = [User(*row) for row in raw_users]
     return render_template("view-users.html", logo="static/images/logo.PNG", css="static/css/style.css", users=users)
 
@@ -25,6 +28,9 @@ def view_user(user_id):
         return redirect(url_for('main.home'))
 
     user = db.get_user(f"user_id = {user_id}")
+    if current_user.role == 'admin_user' and user.role not in ['student', 'teacher']:
+        flash("Access denied", "danger")
+        return redirect(url_for('admin.list_users'))
     return render_template("user.html", logo="static/images/logo.PNG", css="static/css/style.css", user=user)
 
 
@@ -35,9 +41,12 @@ def delete_user(user_id):
         flash("Access denied", "danger")
         return redirect(url_for('main.home'))
 
+    if current_user.role == 'admin_user' and current_user.role not in ['student', 'teacher']:
+        flash("You cannot modify other admin accounts.", "danger")
+        return redirect(url_for('admin.list_users'))
     db.delete_user(user_id)
     flash("User deleted.", "success")
-    return render_template("appointments.html", logo="static/images/logo.PNG", css="static/css/style.css")
+    return redirect(url_for('admin.list_users'))
 
 @adminBlueprint.route("/manage_appoint")
 @login_required
@@ -55,5 +64,32 @@ def view_appointment(appointment_id):
         flash("Access denied", "danger")
         return redirect(url_for("main.index"))
 
-    appointment = db.get_appointment(f"appointment_id=={appointment_id}")
+    appointment = db.get_appointment(f"appointment_id = {appointment_id}")
     return render_template("appointment_detail.html", appointment=appointment, logo="static/images/logo.PNG", css="static/css/style.css")
+
+
+@adminBlueprint.route('/users/<int:user_id>/warn', methods=['POST'])
+@login_required
+def warn_user(user_id):
+    if current_user.role not in ['admin_user', 'superuser']:
+        flash("Access denied", "danger")
+        return redirect(url_for('main.home'))
+    if current_user.role == 'admin_user' and current_user.role not in ['student', 'teacher']:
+        flash("You cannot modify other admin accounts.", "danger")
+        return redirect(url_for('admin.list_users'))
+    db.update_user(user_id, {'warned': True})
+    flash("User has been warned.", "warning")
+    return redirect(url_for('admin.view_user', user_id=user_id))
+
+@adminBlueprint.route('/users/<int:user_id>/toggle_block', methods=['POST'])
+@login_required
+def toggle_block_user(user_id):
+    if current_user.role not in ['admin_user', 'superuser']:
+        flash("Access denied", "danger")
+        return redirect(url_for('main.home'))
+
+    user = db.get_user(f"user_id = {user_id}")
+    new_status = 'blocked' if user.status == 'active' else 'active'
+    db.update_user(user_id, {'status': new_status})
+    flash(f"User has been {'blocked' if new_status == 'blocked' else 'unblocked'}.", "info")
+    return redirect(url_for('admin.view_user', user_id=user_id))

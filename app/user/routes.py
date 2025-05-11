@@ -23,13 +23,15 @@ def login():
         if form.validate_on_submit():
             # This would be replaced with actual database query once implemented
             user_login = User.get_user_by_username(form.username.data)
-            if user_login and user_login.check_password(form.password.data):
-                print("Before Login")
-                login_user(user_login)
-                print("After  Login")
-                flash(f'Welcom back, {user_login.full_name}. You have been successfully logged in.', 'info')
-                print("After ")
-                return redirect(url_for('user.profile'))
+            if user_login:
+                if user_login.status == 'blocked':
+                    flash("Your account has been blocked. Please contact an administrator.", "danger")
+                    return redirect(url_for('user.login'))
+                
+                if user_login.check_password(form.password.data):
+                    login_user(user_login)
+                    flash(f'Welcome back, {user_login.full_name}. You have been successfully logged in.', 'info')
+                    return redirect(url_for('user.profile'))
         else:
             # If form validation fails, display errors
             flash('Login failed. Please check the form errors.', 'danger')
