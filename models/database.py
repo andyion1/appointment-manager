@@ -423,6 +423,37 @@ class Database:
             except Exception as e:
                 print("get_reports_with_details error:", e)
                 return []
+            
+    def update_report(self, report_id, updates):
+        '''Update a report in the database'''
+        set_clauses = []
+        for key, value in updates.items():
+            if isinstance(value, str):
+                set_clauses.append(f"{key} = '{value}'")
+            else:
+                set_clauses.append(f"{key} = {value}")
+        
+        set_clause = ", ".join(set_clauses)
+        qry = f"UPDATE REPORT SET {set_clause} WHERE report_id = {report_id}"
+        
+        with self.get_cursor() as curr:
+            try:
+                curr.execute(qry)
+                return True
+            except Exception as e:
+                print("update_report error:", e)
+                return False
+
+    def delete_report(self, report_id):
+        '''Delete a report from the database'''
+        qry = f"DELETE FROM REPORT WHERE report_id = {report_id}"
+        with self.get_cursor() as curr:
+            try:
+                curr.execute(qry)
+                return True
+            except Exception as e:
+                print("delete_report error:", e)
+                return False
 # ===========================================================================
 db = Database()
 
