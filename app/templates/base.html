@@ -36,6 +36,7 @@
             {% endif %}
         {% endwith %}
     </div>
+
     
     <div class="page-container">
         <nav id="vertical">
@@ -53,9 +54,6 @@
             {% if current_user.is_authenticated %}
                 <h4 class="nav-section-title">{{ current_user.role|capitalize }} Access</h4>
                 <ul class="nav-section">
-                    <li><a href="{{ url_for('user.profile') }}">Profile</a></li>
-                    <li><a href="{{ url_for('user.logout') }}">Logout</a></li>
-        
                     {% if current_user.role in ['student', 'teacher'] %}
                         <li><a href="{{ url_for('appointment.form') }}">Book Appointment</a></li>
                         <li><a href="{{ url_for('appointment.appointments') }}">My Appointments</a></li>
@@ -63,23 +61,21 @@
                     {% endif %}
         
                     {% if current_user.role == 'admin_user' %}
-                        <h4 class="nav-section-title">Admin (User)</h4>
                         <li><a href="{{ url_for('admin.list_users') }}">Manage Users</a></li>
                     {% endif %}
         
                     {% if current_user.role == 'admin_appoint' %}
-                        <h4 class="nav-section-title">Admin (Appointments)</h4>
-                        <li><a href="{{ url_for('admin.manage_appointments') }}">Manage Appointments</a></li>
+                        <li><a href="{{ url_for('admin.manage_appoint') }}">Manage Appointments</a></li>
                     {% endif %}
         
                     {% if current_user.role == 'superuser' %}
-                        <h4 class="nav-section-title">Superuser Controls</h4>
                         <li><a href="{{ url_for('admin.dashboard') }}">Dashboard</a></li>
-                        <li><a href="{{ url_for('admin.manage_users') }}">Manage Users</a></li>
-                        <li><a href="{{ url_for('admin.manage_appointments') }}">Manage Appointments</a></li>
-                        <li><a href="{{ url_for('report.view') }}">View Reports</a></li>
+                        <li><a href="{{ url_for('admin.list_users') }}">Manage Users</a></li>
+                        <li><a href="{{ url_for('admin.manage_appoint') }}">Manage Appointments</a></li>
+                        <li><a href="{{ url_for('admin.manage_reports') }}">Manage Reports</a></li>
                     {% endif %}
-                    
+                    <li><a href="{{ url_for('user.profile') }}">Profile</a></li>
+                    <li><a href="{{ url_for('user.logout') }}">Logout</a></li>
                 </ul>
             {% endif %}
         </nav>

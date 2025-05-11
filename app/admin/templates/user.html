@@ -12,4 +12,18 @@
             Delete User
         </button>
     </form>
+
+    <form method="post" action="{{ url_for('admin.warn_user', user_id=user.user_id) }}">
+    <button type="submit" class="btn btn-warning">Warn User</button>
+    </form>
+
+    <form method="post" action="{{ url_for('admin.toggle_block_user', user_id=user.user_id) }}">
+        <button type="submit" class="btn btn-danger">
+            {% if user.status == 'blocked' %}Unblock{% else %}Block{% endif %} User
+        </button>
+    </form>
+
+    <p><strong>Status:</strong> {{ user.status }}</p>
+    <p><strong>Warned:</strong> {{ 'Yes' if user.warned else 'No' }}</p>
+    <a href="{{ url_for('admin.list_users') }}" class="btn btn-secondary mt-3">Back to all users</a>
 {% endblock %}
