@@ -342,6 +342,118 @@ class Database:
             except Exception as e:
                 print("delete_appointment error:", e)
                 return False
+            
+    def get_report(self, cond):
+        '''Returns a Report object based on the provided condition'''
+        from models.data_classes import Report
+        qry = f"SELECT * FROM REPORT WHERE {cond}"
+        with self.get_cursor() as curr:
+            try:
+                curr.execute(qry)
+                data = curr.fetchone()
+                if data:
+                    return Report(*data)
+                return None
+            except Exception as e:
+                print(f"get_report error: {e}")
+                return None
+
+    def add_report(self, report):
+        '''Add a report to the database'''
+        qry = """
+            INSERT INTO REPORT (appointment_id, generated_by, content, feedback, teacher_response)
+            VALUES (%s, %s, %s, %s, %s)
+            RETURNING report_id
+        """
+        with self.get_cursor() as curr:
+            try:
+                curr.execute(qry, (
+                    report.appointment_id, 
+                    report.generated_by, 
+                    report.content,
+                    report.feedback,
+                    report.teacher_response
+                ))
+                report_id = curr.fetchone()[0]
+                return report_id
+            except Exception as e:
+                print("add_report error:", e)
+                return None
+            
+
+    def get_reports(self, cond=None):
+        '''Returns all reports as Report objects, with optional condition'''
+        from models.data_classes import Report
+        qry = "SELECT * FROM REPORT"
+        if cond:
+            qry += f" WHERE {cond}"
+        qry += " ORDER BY created_at DESC"
+        
+        with self.get_cursor() as curr:
+            try:
+                curr.execute(qry)
+                data = curr.fetchall()
+                return [Report(*row) for row in data] if data else []
+            except Exception as e:
+                print("get_reports error:", e)
+                return []
+
+    def get_reports_with_details(self, cond=None):
+        '''Returns reports with appointment, student and teacher details'''
+        qry = """
+            SELECT r.report_id, r.appointment_id, r.generated_by, r.content, 
+                r.created_at, r.feedback, r.teacher_response,
+                a.appointment_date, a.appointment_time, a.status,
+                su.full_name as student_name, tu.full_name as teacher_name
+            FROM REPORT r
+            JOIN APPOINTMENT a ON r.appointment_id = a.appointment_id
+            JOIN STUDENT s ON a.student_id = s.student_id
+            JOIN TEACHER t ON a.teacher_id = t.teacher_id
+            JOIN USER_PROJ su ON s.user_id = su.user_id
+            JOIN USER_PROJ tu ON t.user_id = tu.user_id
+        """
+        if cond:
+            qry += f" WHERE {cond}"
+        qry += " ORDER BY r.created_at DESC"
+        
+        with self.get_cursor() as curr:
+            try:
+                curr.execute(qry)
+                return curr.fetchall()
+            except Exception as e:
+                print("get_reports_with_details error:", e)
+                return []
+            
+    def update_report(self, report_id, updates):
+        '''Update a report in the database'''
+        set_clauses = []
+        for key, value in updates.items():
+            if isinstance(value, str):
+                set_clauses.append(f"{key} = '{value}'")
+            else:
+                set_clauses.append(f"{key} = {value}")
+        
+        set_clause = ", ".join(set_clauses)
+        qry = f"UPDATE REPORT SET {set_clause} WHERE report_id = {report_id}"
+        
+        with self.get_cursor() as curr:
+            try:
+                curr.execute(qry)
+                return True
+            except Exception as e:
+                print("update_report error:", e)
+                return False
+
+    def delete_report(self, report_id):
+        '''Delete a report from the database'''
+        qry = f"DELETE FROM REPORT WHERE report_id = {report_id}"
+        with self.get_cursor() as curr:
+            try:
+                curr.execute(qry)
+                return True
+            except Exception as e:
+                print("delete_report error:", e)
+                return False
 # ===========================================================================
 db = Database()
 

@@ -62,5 +62,17 @@
     <div class="back-link">
         <a href="{{ url_for('appointment.appointments') }}">Back to Appointments</a>
     </div>
+
+    {% if appointment.status == "completed" %}
+    <div class="appointment-report-links">
+        {% set report = db.get_report("appointment_id = " ~ appointment.appointment_id) %}
+        {% if report %}
+            <a href="{{ url_for('report.report', report_id=report.report_id) }}" class="button-link">View Report</a>
+        {% else %}
+            <a href="{{ url_for('report.create', appointment_id=appointment.appointment_id) }}" class="button-link">Create Report</a>
+        {% endif %}
+    </div>
+    {% endif %}
+
 </div>
 {% endblock %}
