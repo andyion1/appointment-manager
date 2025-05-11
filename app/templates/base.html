@@ -57,6 +57,7 @@
                     {% if current_user.role in ['student', 'teacher'] %}
                         <li><a href="{{ url_for('appointment.form') }}">Book Appointment</a></li>
                         <li><a href="{{ url_for('appointment.appointments') }}">My Appointments</a></li>
+                        <li><a href="{{ url_for('report.view') }}">Reports</a></li>
                     {% endif %}
         
                     {% if current_user.role == 'admin_user' %}

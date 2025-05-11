@@ -1,7 +1,38 @@
 {% extends "base.html" %}
-{% block nav %}
 
-{% endblock %}
+{% block title %}Reports{% endblock %}
+
 {% block content %}
-    
+<h2>Reports</h2>
+
+{% if reports %}
+<table class="appointment-table">
+    <thead>
+        <tr>
+            <th>Report ID</th>
+            <th>Appointment Date</th>
+            <th>Student</th>
+            <th>Teacher</th>
+            <th>Created At</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for report in reports %}
+        <tr>
+            <td>{{ report[0] }}</td>
+            <td>{{ report[7] }}</td>
+            <td>{{ report[10] }}</td>
+            <td>{{ report[11] }}</td>
+            <td>{{ report[4] }}</td>
+            <td>
+                <a href="{{ url_for('report.report', report_id=report[0]) }}" class="button-link">View</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>No reports found.</p>
+{% endif %}
 {% endblock %}
