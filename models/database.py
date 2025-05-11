@@ -134,7 +134,6 @@ class Database:
         """
         with self.get_cursor() as curr:
             try:
-                pdb.set_trace()
                 curr.execute(qry, (teacher.user_id, teacher.department, teacher.office_location))
             except Exception as e:
                 print("add_teacher error:", e)
@@ -193,65 +192,157 @@ class Database:
 
 
     def get_student(self, cond):
-        '''Returns a Student object based on the provided condition'''
+        '''Returns a Student object based on a condition (e.g., student_id = 3)'''
         from app.user.user import Student
-        qry = f"SELECT * FROM Student WHERE {cond}"
+        qry = f"""
+            SELECT u.user_id, u.username, u.password_hash, u.email, u.full_name, u.role, u.user_image,
+                s.student_id, s.program, s.student_number
+            FROM USER_PROJ u
+            JOIN Student s ON u.user_id = s.user_id
+            WHERE {cond}
+        """
         with self.get_cursor() as curr:
             try:
                 curr.execute(qry)
-                student_data = curr.fetchone()
-                if student_data:
-                    return Student(*student_data)
+                data = curr.fetchone()
+                if data:
+                    return Student(*data)
                 return None
             except Exception as e:
-                print(e)
+                print("get_student error:", e)
                 return None
-            
-    def get_all_appointments(self):
+    def get_students(self):
+        from app.user.user import Student
         query = """
-            SELECT
-                a.appointment_id,
-                s.full_name AS student_name,
-                t_u.full_name AS teacher_name,
-                a.appointment_date,
-                a.status,
-                a.created_at,
-                a.appointment_time,
-                a.reason
-            FROM appointment a
-            JOIN user_proj s ON a.student_id = s.user_id
-            LEFT JOIN teacher t ON a.teacher_id = t.teacher_id
-            LEFT JOIN user_proj t_u ON t.user_id = t_u.user_id;
-        """
+            SELECT u.user_id, u.username, u.password_hash, u.email, u.full_name, u.role, u.user_image,
+                s.student_id, s.program, s.student_number
+            FROM USER_PROJ u
+            JOIN STUDENT s ON u.user_id = s.user_id
+            WHERE u.role = 'student'
+            """
         with self.get_cursor() as curr:
             try:
                 curr.execute(query)
-                rows = curr.fetchall()
-                return [Appointment(*row) for row in rows]
+                data = curr.fetchall()
+                return [Student(*row) for row in data] if data else []
             except Exception as e:
-                print("Error fetching appointments:", e)
+                print("get_students error:", e)
                 return []
 
-            
-    def get_appointment_by_id(self, appointment_id):
-        query = """
-            SELECT a.appointment_id, a.date, a.time, 
-                s.full_name AS student_name, 
-                t.full_name AS teacher_name
-            FROM appointment a
-            JOIN user_proj s ON a.student_id = s.user_id
-            JOIN user_proj t ON a.teacher_id = t.user_id
-            WHERE a.appointment_id = %s
+    def get_appointment(self, cond):
+        '''Returns an Appointment object based on the provided condition'''
+        from models.data_classes import Appointment
+        qry = f"SELECT * FROM APPOINTMENT WHERE {cond}"
+        with self.get_cursor() as curr:
+            try:
+                curr.execute(qry)
+                data = curr.fetchone()
+                if data:
+                    return Appointment(*data)
+                return None
+            except Exception as e:
+                print(f"get_appointment error: {e}")
+                return None
+    
+    def add_appointment(self, appointment):
+        '''Add an appointment to the database'''
+        qry = """
+            INSERT INTO APPOINTMENT (student_id, teacher_id, appointment_date, status, created_at, appointment_time, reason)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            RETURNING appointment_id
         """
         with self.get_cursor() as curr:
             try:
-                curr.execute(query, (appointment_id,))
-                return curr.fetchone()
+                curr.execute(qry, (
+                    appointment.student_id, 
+                    appointment.teacher_id, 
+                    appointment.appointment_date, 
+                    appointment.status, 
+                    appointment.created_at, 
+                    appointment.appointment_time, 
+                    appointment.reason
+                ))
+                appointment_id = curr.fetchone()[0]
+                return appointment_id
             except Exception as e:
-                print("Error fetching appointment by ID:", e)
+                print("add_appointment error:", e)
                 return None
 
+    def get_appointments(self, cond=None):
+        '''Returns all appointments as Appointment objects, with optional condition'''
+        from models.data_classes import Appointment
+        qry = "SELECT * FROM APPOINTMENT"
+        if cond:
+            qry += f" WHERE {cond}"
+        qry += " ORDER BY appointment_date DESC, appointment_time ASC"
+        
+        with self.get_cursor() as curr:
+            try:
+                curr.execute(qry)
+                data = curr.fetchall()
+                appointments = []
+                for appointment in data:
+                    appointments.append(Appointment(appointment[0], appointment[1], appointment[2], appointment[3], appointment[6], appointment[4], appointment[7], appointment[5]))
+                return appointments if data else []
+            except Exception as e:
+                print("get_appointments error:", e)
+                return []
 
+
+    def get_appointments_with_details(self, cond=None):
+        '''Returns appointments with student and teacher names'''
+        qry = """
+            SELECT a.appointment_id, a.student_id, a.teacher_id, a.appointment_date, 
+                a.status, a.created_at, a.appointment_time, a.reason,
+                su.full_name as student_name, tu.full_name as teacher_name
+            FROM APPOINTMENT a
+            JOIN STUDENT s ON a.student_id = s.student_id
+            JOIN TEACHER t ON a.teacher_id = t.teacher_id
+            JOIN USER_PROJ su ON s.user_id = su.user_id
+            JOIN USER_PROJ tu ON t.user_id = tu.user_id
+        """
+        if cond:
+            qry += f" WHERE {cond}"
+        qry += " ORDER BY a.appointment_date DESC, a.appointment_time ASC"
+        
+        with self.get_cursor() as curr:
+            try:
+                curr.execute(qry)
+                return curr.fetchall()
+            except Exception as e:
+                print("get_appointments_with_details error:", e)
+                return []
+
+    def update_appointment(self, appointment_id, updates):
+        '''Update an appointment in the database'''
+        set_clauses = []
+        for key, value in updates.items():
+            if isinstance(value, str):
+                set_clauses.append(f"{key} = '{value}'")
+            else:
+                set_clauses.append(f"{key} = {value}")
+        
+        set_clause = ", ".join(set_clauses)
+        qry = f"UPDATE APPOINTMENT SET {set_clause} WHERE appointment_id = {appointment_id}"
+        
+        with self.get_cursor() as curr:
+            try:
+                curr.execute(qry)
+                return True
+            except Exception as e:
+                print("update_appointment error:", e)
+                return False
+
+    def delete_appointment(self, appointment_id):
+        '''Delete an appointment from the database'''
+        qry = f"DELETE FROM APPOINTMENT WHERE appointment_id = {appointment_id}"
+        with self.get_cursor() as curr:
+            try:
+                curr.execute(qry)
+                return True
+            except Exception as e:
+                print("delete_appointment error:", e)
+                return False
 # ===========================================================================
 db = Database()
 

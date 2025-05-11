@@ -352,6 +352,63 @@ footer {
     background-color: #b3c2fd;
     box-shadow: 0 0 10px rgba(67, 54, 193, 0.6);
 }
+.appointment-table {
+    width: 100%;
+    border-collapse: collapse; /* Collapses the table borders */
+    margin: 20px 0;
+    font-family: Arial, sans-serif;
+}
+
+.appointment-table th, .appointment-table td {
+    padding: 10px;
+    text-align: left;
+    border: 1px solid #ddd; /* Adds borders to cells */
+}
+
+.appointment-table th {
+    background-color: #f4f4f4; /* Light gray background for the header */
+    font-weight: bold;
+}
+
+.appointment-table tr:nth-child(even) {
+    background-color: #f9f9f9; /* Alternates row colors */
+}
+
+.appointment-table tr:hover {
+    background-color: #f1f1f1; /* Highlights rows on hover */
+}
+
+.status-badge {
+    padding: 5px;
+    border-radius: 5px;
+    text-transform: capitalize;
+    font-size: 0.9em;
+}
+
+.status-badge.completed {
+    background-color: #28a745;
+    color: white;
+}
+
+.status-badge-pending {
+    background-color: #ffc107;
+    color: white;
+}
+
+.status-badge.canceled {
+    background-color: #dc3545;
+    color: white;
+}
+
+.button-link {
+    text-decoration: none;
+    color: #007bff;
+    font-weight: bold;
+}
+
+.button-link:hover {
+    text-decoration: underline;
+}
 
 
 
