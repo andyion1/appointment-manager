@@ -411,4 +411,50 @@ footer {
 }
 
 
+.report-details {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+.report-details h2, .report-details h3 {
+    color: #2c3e50;
+    margin-bottom: 15px;
+}
+
+.content-box {
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    padding: 15px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    min-height: 60px;
+    white-space: pre-line;
+}
+
+.student-feedback, .teacher-response, .report-content {
+    margin-bottom: 25px;
+}
+
+.report-update {
+    border-top: 1px solid #eee;
+    padding-top: 20px;
+    margin-top: 20px;
+}
+
+.delete-button {
+    background-color: #e74c3c;
+    color: white;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 15px;
+}
+
+.delete-button:hover {
+    background-color: #c0392b;
+}
 
