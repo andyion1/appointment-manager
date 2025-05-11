@@ -31,3 +31,57 @@ def view():
         reports = []
     
     return render_template("reports.html", reports=reports)
+
+
+@reportBlueprint.route("/report/<int:report_id>")
+@login_required
+def report(report_id):
+    """View a specific report"""
+    report = db.get_report(f"report_id = {report_id}")
+    
+    if not report:
+        flash("Report not found", "danger")
+        return redirect(url_for('report.view'))
+    
+    # Check if user has permission to view this report
+    has_permission = False
+    
+    if current_user.role in ['admin_appoint', 'superuser']:
+        has_permission = True
+    else:
+        # Get the appointment related to this report
+        appointment = db.get_appointment(f"appointment_id = {report.appointment_id}")
+        
+        if appointment:
+            if current_user.role == 'student':
+                student = db.get_student(f"user_id = {current_user.user_id}")
+                if student and student.student_id == appointment.student_id:
+                    has_permission = True
+            elif current_user.role == 'teacher':
+                teacher = db.get_teacher(f"user_id = {current_user.user_id}")
+                if teacher and teacher.teacher_id == appointment.teacher_id:
+                    has_permission = True
+    
+    if not has_permission:
+        flash("You don't have permission to view this report", "danger")
+        return redirect(url_for('report.view'))
+    
+    # Get the related appointment, student, and teacher info
+    appointment = db.get_appointment(f"appointment_id = {report.appointment_id}")
+    appointment_details = db.get_appointments_with_details(f"a.appointment_id = {report.appointment_id}")
+    
+    if appointment_details:
+        appointment_detail = appointment_details[0]
+    else:
+        appointment_detail = None
+    
+    # Create form for updating report
+    form = ReportForm(obj=report)
+    
+    return render_template(
+        "report.html",
+        report=report,
+        appointment=appointment,
+        appointment_detail=appointment_detail,
+        form=form
+    )
