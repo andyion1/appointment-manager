@@ -1,5 +1,8 @@
 import os
 import sys
+
+from models.data_classes import Appointment
+from models.data_classes import Report
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import psycopg2
 from config import Config 
@@ -99,7 +102,8 @@ class Database:
     def get_user(self, cond):
         '''Returns a User object based on the provided user_id'''
         from app.user.user import User
-        qry = f"SELECT * FROM USER_PROJ WHERE {cond}"
+        qry = f"SELECT user_id, username, password_hash, email, full_name, role, user_image, status, warned FROM USER_PROJ WHERE {cond}"
+
         with self.get_cursor() as curr:
             try:
                 curr.execute(qry)
@@ -111,13 +115,22 @@ class Database:
                 print(e)
     
     def update_user(self, id, updates):
-        qry = f"update user_proj set full_name = '{updates['full_name']}', email = '{updates['email']}', user_image = '{updates['user_image']}' where user_id = '{id}'"
-        with self.__connection.cursor() as curr:
+        set_clauses = []
+        for key, value in updates.items():
+            if isinstance(value, str):
+                set_clauses.append(f"{key} = '{value}'")
+            elif isinstance(value, bool):
+                set_clauses.append(f"{key} = {'TRUE' if value else 'FALSE'}")
+            else:
+                set_clauses.append(f"{key} = {value}")
+        
+        set_clause = ", ".join(set_clauses)
+        qry = f"UPDATE USER_PROJ SET {set_clause} WHERE user_id = {id}"
+        with self.get_cursor() as curr:
             try:
-                res = curr.execute(qry)
-                self.__connection.commit()
+                curr.execute(qry)
             except Exception as e:
-                print(e)
+                print("update_user error:", e)
 
     def delete_user(self, user_id):
         qry = "DELETE FROM USER_PROJ WHERE user_id = %s"
@@ -229,9 +242,20 @@ class Database:
                 return []
 
     def get_appointment(self, cond):
-        '''Returns an Appointment object based on the provided condition'''
-        from models.data_classes import Appointment
-        qry = f"SELECT * FROM APPOINTMENT WHERE {cond}"
+        '''Returns an Appointment object with student and teacher names'''
+        qry = f"""
+            SELECT a.appointment_id, a.student_id, a.teacher_id, 
+                a.appointment_date, a.status, a.created_at, 
+                a.appointment_time, a.reason,
+                su.full_name AS student_name, 
+                tu.full_name AS teacher_name
+            FROM appointment a
+            JOIN student s ON a.student_id = s.student_id
+            JOIN teacher t ON a.teacher_id = t.teacher_id
+            JOIN user_proj su ON s.user_id = su.user_id
+            JOIN user_proj tu ON t.user_id = tu.user_id
+            WHERE {cond}
+        """
         with self.get_cursor() as curr:
             try:
                 curr.execute(qry)
@@ -242,6 +266,7 @@ class Database:
             except Exception as e:
                 print(f"get_appointment error: {e}")
                 return None
+
     
     def add_appointment(self, appointment):
         '''Add an appointment to the database'''
@@ -276,7 +301,7 @@ class Database:
         qry += " ORDER BY appointment_date DESC, appointment_time ASC"
         
         with self.get_cursor() as curr:
-            try:
+            try:    
                 curr.execute(qry)
                 data = curr.fetchall()
                 appointments = []
@@ -289,10 +314,9 @@ class Database:
 
 
     def get_appointments_with_details(self, cond=None):
-        '''Returns appointments with student and teacher names'''
         qry = """
-            SELECT a.appointment_id, a.student_id, a.teacher_id, a.appointment_date, 
-                a.status, a.created_at, a.appointment_time, a.reason,
+            SELECT a.appointment_id, a.student_id, a.teacher_id, a.appointment_date,
+                a.appointment_time, a.status, a.reason, a.created_at,
                 su.full_name as student_name, tu.full_name as teacher_name
             FROM APPOINTMENT a
             JOIN STUDENT s ON a.student_id = s.student_id
@@ -303,34 +327,69 @@ class Database:
         if cond:
             qry += f" WHERE {cond}"
         qry += " ORDER BY a.appointment_date DESC, a.appointment_time ASC"
-        
+
         with self.get_cursor() as curr:
             try:
                 curr.execute(qry)
-                return curr.fetchall()
+                rows = curr.fetchall()
+                appointments = []
+                for row in rows:
+                    appt = Appointment(*row[:8])  # first 8 fields = expected constructor args
+                    appt.student_name = row[8]
+                    appt.teacher_name = row[9]
+                    appointments.append(appt)
+                return appointments
             except Exception as e:
                 print("get_appointments_with_details error:", e)
                 return []
 
-    def update_appointment(self, appointment_id, updates):
-        '''Update an appointment in the database'''
-        set_clauses = []
-        for key, value in updates.items():
-            if isinstance(value, str):
-                set_clauses.append(f"{key} = '{value}'")
-            else:
-                set_clauses.append(f"{key} = {value}")
-        
-        set_clause = ", ".join(set_clauses)
-        qry = f"UPDATE APPOINTMENT SET {set_clause} WHERE appointment_id = {appointment_id}"
-        
+
+    def get_appointment_with_details(self, cond):
+        '''Returns a single Appointment object with student and teacher full names'''
+        qry = f"""
+            SELECT a.appointment_id, a.student_id, a.teacher_id, 
+                a.appointment_date, a.appointment_time, a.status, 
+                a.reason, a.created_at,
+                su.full_name as student_name, 
+                tu.full_name as teacher_name
+            FROM APPOINTMENT a
+            JOIN STUDENT s ON a.student_id = s.student_id
+            JOIN TEACHER t ON a.teacher_id = t.teacher_id
+            JOIN USER_PROJ su ON s.user_id = su.user_id
+            JOIN USER_PROJ tu ON t.user_id = tu.user_id
+            WHERE {cond}
+        """
         with self.get_cursor() as curr:
             try:
                 curr.execute(qry)
-                return True
+                row = curr.fetchone()
+                if row:
+                    # first 8 values go into constructor
+                    appointment = Appointment(*row[:8])
+                    # set optional name fields
+                    appointment.student_name = row[8]
+                    appointment.teacher_name = row[9]
+                    return appointment
+                return None
+            except Exception as e:
+                print(f"get_appointment_with_details error: {e}")
+                return None
+
+    def update_appointment(self, appointment_id, updates: dict):
+        set_clause = ", ".join([f"{key} = %s" for key in updates])
+        values = list(updates.values()) + [appointment_id]
+
+        query = f"""
+            UPDATE appointment
+            SET {set_clause}
+            WHERE appointment_id = %s
+        """
+
+        with self.get_cursor() as curr:
+            try:
+                curr.execute(query, values)
             except Exception as e:
                 print("update_appointment error:", e)
-                return False
 
     def delete_appointment(self, appointment_id):
         '''Delete an appointment from the database'''
@@ -342,6 +401,208 @@ class Database:
             except Exception as e:
                 print("delete_appointment error:", e)
                 return False
+            
+    def get_reports(self, cond=None):
+        qry = "SELECT * FROM report"
+        if cond:
+            qry += f" WHERE {cond}"
+        qry += " ORDER BY created_at DESC"
+        with self.get_cursor() as curr:
+            curr.execute(qry)
+            return curr.fetchall()
+        
+    def get_reports_with_details(self, condition=None):
+        '''Get reports with student and teacher full names'''
+        qry = """
+            SELECT 
+                r.report_id,
+                r.generated_by,
+                r.created_at,
+                r.appointment_id,
+                r.feedback,
+                r.teacher_response,
+                su.full_name AS student_name,
+                tu.full_name AS teacher_name
+            FROM REPORT r
+            JOIN APPOINTMENT a ON r.appointment_id = a.appointment_id
+            JOIN STUDENT s ON a.student_id = s.student_id
+            JOIN TEACHER t ON a.teacher_id = t.teacher_id
+            JOIN USER_PROJ su ON s.user_id = su.user_id
+            JOIN USER_PROJ tu ON t.user_id = tu.user_id
+        """
+        if condition:
+            qry += f" WHERE {condition}"
+        qry += " ORDER BY r.created_at DESC"
+
+        with self.get_cursor() as curr:
+            try:
+                curr.execute(qry)
+                rows = curr.fetchall()
+
+                reports = []
+                for row in rows:
+                    report = Report(
+                        report_id=row[0],
+                        generated_by=row[1],
+                        created_at=row[2],
+                        appointment_id=row[3],
+                        feedback=row[4],
+                        teacher_response=row[5]
+                    )
+                    report.student_name = row[6]
+                    report.teacher_name = row[7]
+                    reports.append(report)
+
+                return reports
+            except Exception as e:
+                print("get_reports_with_details error:", e)
+                return []
+                
+    def get_report_with_details(self, cond):
+        '''Returns a single Report object with student and teacher full names'''
+        qry = f"""
+            SELECT 
+                r.report_id,
+                r.generated_by,
+                r.created_at,
+                r.appointment_id,
+                r.feedback,
+                r.teacher_response,
+                su.full_name AS student_name,
+                tu.full_name AS teacher_name
+            FROM REPORT r
+            JOIN APPOINTMENT a ON r.appointment_id = a.appointment_id
+            JOIN STUDENT s ON a.student_id = s.student_id
+            JOIN TEACHER t ON a.teacher_id = t.teacher_id
+            JOIN USER_PROJ su ON s.user_id = su.user_id
+            JOIN USER_PROJ tu ON t.user_id = tu.user_id
+            WHERE {cond}
+        """
+        with self.get_cursor() as curr:
+            try:
+                curr.execute(qry)
+                row = curr.fetchone()
+                if row:
+                    report = Report(
+                        report_id=row[0],
+                        generated_by=row[1],
+                        created_at=row[2],
+                        appointment_id=row[3],
+                        feedback=row[4],
+                        teacher_response=row[5]
+                    )
+                    report.student_name = row[6]
+                    report.teacher_name = row[7]
+                    return report
+                return None
+            except Exception as e:
+                print(f"get_report_with_details error: {e}")
+                return None
+
+    def add_report(self, report):
+        '''Add a report to the database'''
+        qry = """
+            INSERT INTO report (appointment_id, generated_by, created_at, feedback, teacher_response)
+            VALUES (%s, %s, %s, %s, %s)
+            RETURNING report_id
+        """
+        with self.get_cursor() as curr:
+            try:
+                curr.execute(qry, (
+                    report.appointment_id,
+                    report.generated_by,
+                    report.created_at,
+                    report.feedback,
+                    report.teacher_response
+                ))
+                report_id = curr.fetchone()[0]
+                return report_id
+            except Exception as e:
+                print("add_report error:", e)
+                return None
+
+    def delete_report(self, report_id):
+        qry = """
+            DELETE FROM report
+            WHERE report_id = %s
+        """
+        with self.get_cursor() as curr:
+            try:
+                curr.execute(qry, (report_id,))
+            except Exception as e:
+                print(f"Failed to delete report {report_id}: {e}")
+
+            
+    def log_admin_action(self, admin_user_id, action, target_user_id):
+        qry = """
+            INSERT INTO admin_log (admin_user_id, action, target_user_id)
+            VALUES (%s, %s, %s)
+        """
+        with self.get_cursor() as curr:
+            try:
+                curr.execute(qry, (admin_user_id, action, target_user_id))
+            except Exception as e:
+                print(f"Failed to log admin action: {e}")
+
+    def get_admin_logs(self):
+        qry = """
+            SELECT l.timestamp, a.username AS admin_username, 
+                t.username AS target_username, l.action
+            FROM admin_log l
+            JOIN user_proj a ON l.admin_user_id = a.user_id
+            JOIN user_proj t ON l.target_user_id = t.user_id
+            ORDER BY l.timestamp DESC
+        """ 
+        with self.get_cursor() as curr:
+            curr.execute(qry)
+            return curr.fetchall()
+
+    def update_report(self, report_id, updates):
+        '''Update a report in the database with dynamic fields'''
+        if not updates:
+            return False
+
+        set_clauses = []
+        values = []
+
+        for key, value in updates.items():
+            set_clauses.append(f"{key} = %s")
+            values.append(value)
+
+        qry = f"""
+            UPDATE REPORT
+            SET {', '.join(set_clauses)}
+            WHERE report_id = %s
+        """
+        values.append(report_id)
+
+        with self.get_cursor() as curr:
+            try:
+                curr.execute(qry, values)
+                return curr.rowcount > 0
+            except Exception as e:
+                print("update_report error:", e)
+                return False
+
+
+    def get_teacher_by_user_name(self, username):
+        query = """
+        SELECT t.teacher_id, u.full_name
+        FROM TEACHER t
+        JOIN USER_PROJ u ON t.user_id = u.user_id
+        WHERE u.username = %s
+        """
+        with self.get_cursor() as curr:
+            curr.execute(query, (username,))
+            row = curr.fetchone()
+            if row:
+                class TeacherObj:
+                    def __init__(self, teacher_id, full_name):
+                        self.teacher_id = teacher_id
+                        self.full_name = full_name
+                return TeacherObj(*row)
+            return None
+
 # ===========================================================================
 db = Database()
 

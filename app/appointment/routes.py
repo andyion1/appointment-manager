@@ -36,19 +36,17 @@ def appointments():
     
     return render_template("appointments.html", appointments=appointments)
 
+################################################################################################ HERE!!
 @appointmentBlueprint.route("/appointment/<int:appointment_id>")
 @login_required
 def appointment(appointment_id):
-    # Get the appointment
-    appointment = db.get_appointment(f"appointment_id = {appointment_id}")
-    
+    appointment = db.get_appointment_with_details(f"a.appointment_id = {appointment_id}")
     if not appointment:
         flash("Appointment not found", "danger")
         return redirect(url_for('appointment.appointments'))
-    
-    # Check if user has permission to view this appointment
+
+    # Check permissions
     has_permission = False
-    
     if current_user.role in ['admin_appoint', 'admin_super']:
         has_permission = True
     elif current_user.role == 'student':
@@ -59,24 +57,19 @@ def appointment(appointment_id):
         teacher = Teacher.get_teacher_by_user_name(current_user.username)
         if teacher and teacher.teacher_id == appointment.teacher_id:
             has_permission = True
-    
+
     if not has_permission:
         flash("You don't have permission to view this appointment", "danger")
         return redirect(url_for('appointment.appointments'))
-    
-    # Get the related teacher and student info using the database methods
-    teacher = db.get_teacher(f"teacher_id = {appointment.teacher_id}")
-    student = db.get_student(f"student_id = {appointment.student_id}")
-    
-    # Create status form for updating appointment status
+
     form = AppointmentStatusForm()
-    
+    report = db.get_report_with_details(f"appointment_id = {appointment.appointment_id}")
+
     return render_template(
         "appointment.html",
         appointment=appointment,
-        teacher=teacher,
-        student=student,
-        status_form=form
+        status_form=form,
+        report=report
     )
 
 @appointmentBlueprint.route("/appointment/<int:appointment_id>/status", methods=["POST"])
