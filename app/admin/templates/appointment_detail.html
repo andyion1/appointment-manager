@@ -18,5 +18,14 @@
         </div>
     </div>
     <a href="{{ url_for('admin.manage_appoint') }}" class="btn btn-secondary mt-3">Back to Appointments</a>
+    {% if current_user.role in ['admin_appoint', 'admin_super'] %}
+        <a href="{{ url_for('admin.edit_appointment', appointment_id=appointment.appointment_id) }}" class="btn btn-primary mt-3 ms-2">Edit Appointment</a>
+        
+        <form method="POST" action="{{ url_for('admin.delete_appointment', appointment_id=appointment.appointment_id) }}" style="display:inline;">
+            <button type="submit" class="btn btn-danger mt-3 ms-2" onclick="return confirm('Are you sure you want to delete this appointment?');">
+                Delete Appointment
+            </button>
+        </form>
+    {% endif %}
 </div>
 {% endblock %}

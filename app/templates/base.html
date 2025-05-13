@@ -88,11 +88,11 @@
                         <li><a href="{{ url_for('admin.manage_appoint') }}"><i class="fas fa-calendar-check"></i> Manage Appointments</a></li>
                     {% endif %}
         
-                    {% if current_user.role == 'superuser' %}
-                        <li><a href="{{ url_for('admin.dashboard') }}"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                        <li><a href="{{ url_for('admin.list_users') }}"><i class="fas fa-users-cog"></i> Manage Users</a></li>
-                        <li><a href="{{ url_for('admin.manage_appoint') }}"><i class="fas fa-calendar-check"></i> Manage Appointments</a></li>
-                        <li><a href="{{ url_for('admin.manage_reports') }}"><i class="fas fa-clipboard-list"></i> Manage Reports</a></li>
+                    {% if current_user.role == 'admin_super' %}
+                        <li><a href="{{ url_for('admin.dashboard') }}">Dashboard</a></li>
+                        <li><a href="{{ url_for('admin.list_users') }}">Manage Users</a></li>
+                        <li><a href="{{ url_for('admin.manage_appoint') }}">Manage Appointments</a></li>
+                        <li><a href="{{ url_for('admin.manage_reports') }}">Manage Reports</a></li>
                     {% endif %}
                     <li><a href="{{ url_for('user.profile') }}"><i class="fas fa-id-card"></i> Profile</a></li>
                     <li><a href="{{ url_for('user.logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
