@@ -16,13 +16,7 @@
         <p><strong>Status:</strong> {{ appointment.status }}</p>
         {% endif %}
     </div>
-    
-    <div class="report-content">
-        <h3>Report Content</h3>
-        <div class="content-box">
-            {{ report.content }}
-        </div>
-    </div>
+
     
     <div class="student-feedback">
         <h3>Student Feedback</h3>
@@ -50,18 +44,6 @@
         <h3>Update Report</h3>
         <form method="POST" action="{{ url_for('report.update', report_id=report.report_id) }}">
             {{ form.hidden_tag() }}
-            
-            <div class="form-section">
-                {{ form.content.label(class="form-label") }}
-                {{ form.content(class="form-control", rows=5) }}
-                {% if form.content.errors %}
-                    <ul class="errors">
-                        {% for error in form.content.errors %}
-                            <li>{{ error }}</li>
-                        {% endfor %}
-                    </ul>
-                {% endif %}
-            </div>
             
             {% if current_user.role == 'student' or current_user.role in ['admin_appoint', 'superuser'] %}
             <div class="form-section">

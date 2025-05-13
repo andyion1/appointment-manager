@@ -63,7 +63,7 @@ def appointment(appointment_id):
         return redirect(url_for('appointment.appointments'))
 
     form = AppointmentStatusForm()
-    report = db.get_report(f"appointment_id = {appointment.appointment_id}")
+    report = db.get_report_with_details(f"appointment_id = {appointment.appointment_id}")
 
     return render_template(
         "appointment.html",
