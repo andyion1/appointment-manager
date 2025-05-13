@@ -34,6 +34,7 @@ def report(report_id):
     # Get report from DB
     form = ReportForm()
     report = db.get_report_with_details(f"report_id = {report_id}")
+    
     if not report:
         flash("Report not found", "danger")
         return redirect(url_for("report.view"))
@@ -53,11 +54,14 @@ def report(report_id):
         if teacher and appointment and teacher.teacher_id == appointment.teacher_id:
             has_permission = True
 
+    appointment = db.get_appointment_with_details(f"a.appointment_id = {report.appointment_id}")
+
+
     if not has_permission:
         flash("You don't have permission to view this report", "danger")
         return redirect(url_for("report.view"))
 
-    return render_template("report.html", report=report, form=form)
+    return render_template("report.html", report=report, form=form, appointment=appointment, appointment_detail=appointment)
 
 
 
