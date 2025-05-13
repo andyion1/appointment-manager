@@ -20,18 +20,7 @@
     
     <form method="POST" action="{{ url_for('report.create', appointment_id=appointment.appointment_id) }}">
         {{ form.hidden_tag() }}
-        
-        <div class="form-section">
-            {{ form.content.label(class="form-label") }}
-            {{ form.content(class="form-control", rows=5) }}
-            {% if form.content.errors %}
-                <ul class="errors">
-                    {% for error in form.content.errors %}
-                        <li>{{ error }}</li>
-                    {% endfor %}
-                </ul>
-            {% endif %}
-        </div>
+    
         
         {% if current_user.role == 'student' %}
         <div class="form-section">
