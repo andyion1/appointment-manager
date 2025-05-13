@@ -314,10 +314,9 @@ class Database:
 
 
     def get_appointments_with_details(self, cond=None):
-        '''Returns appointments with student and teacher names'''
         qry = """
-            SELECT a.appointment_id, a.student_id, a.teacher_id, a.appointment_date, 
-                a.status, a.created_at, a.appointment_time, a.reason,
+            SELECT a.appointment_id, a.student_id, a.teacher_id, a.appointment_date,
+                a.appointment_time, a.status, a.reason, a.created_at,
                 su.full_name as student_name, tu.full_name as teacher_name
             FROM APPOINTMENT a
             JOIN STUDENT s ON a.student_id = s.student_id
@@ -328,16 +327,23 @@ class Database:
         if cond:
             qry += f" WHERE {cond}"
         qry += " ORDER BY a.appointment_date DESC, a.appointment_time ASC"
-        
+
         with self.get_cursor() as curr:
             try:
                 curr.execute(qry)
-                appointments = [Appointment(*row) for row in curr.fetchall()]
+                rows = curr.fetchall()
+                appointments = []
+                for row in rows:
+                    appt = Appointment(*row[:8])  # first 8 fields = expected constructor args
+                    appt.student_name = row[8]
+                    appt.teacher_name = row[9]
+                    appointments.append(appt)
                 return appointments
             except Exception as e:
                 print("get_appointments_with_details error:", e)
                 return []
-            
+
+
     def get_appointment_with_details(self, cond):
         '''Returns a single Appointment object with student and teacher full names'''
         qry = f"""
@@ -369,25 +375,21 @@ class Database:
                 print(f"get_appointment_with_details error: {e}")
                 return None
 
-    def update_appointment(self, appointment_id, updates):
-        '''Update an appointment in the database'''
-        set_clauses = []
-        for key, value in updates.items():
-            if isinstance(value, str):
-                set_clauses.append(f"{key} = '{value}'")
-            else:
-                set_clauses.append(f"{key} = {value}")
-        
-        set_clause = ", ".join(set_clauses)
-        qry = f"UPDATE APPOINTMENT SET {set_clause} WHERE appointment_id = {appointment_id}"
-        
+    def update_appointment(self, appointment_id, updates: dict):
+        set_clause = ", ".join([f"{key} = %s" for key in updates])
+        values = list(updates.values()) + [appointment_id]
+
+        query = f"""
+            UPDATE appointment
+            SET {set_clause}
+            WHERE appointment_id = %s
+        """
+
         with self.get_cursor() as curr:
             try:
-                curr.execute(qry)
-                return True
+                curr.execute(query, values)
             except Exception as e:
                 print("update_appointment error:", e)
-                return False
 
     def delete_appointment(self, appointment_id):
         '''Delete an appointment from the database'''
@@ -455,10 +457,6 @@ class Database:
             except Exception as e:
                 print("get_reports_with_details error:", e)
                 return []
-
-
-
-
                 
     def get_report_with_details(self, cond):
         '''Returns a single Report object with student and teacher full names'''
@@ -501,9 +499,6 @@ class Database:
                 print(f"get_report_with_details error: {e}")
                 return None
 
-
-
-
     def add_report(self, report):
         '''Add a report to the database'''
         qry = """
@@ -526,28 +521,87 @@ class Database:
                 print("add_report error:", e)
                 return None
 
-            
-    def update_report(self, report_id, updates):
-        '''Update a report in the database'''
+    def delete_report(self, report_id):
         qry = """
-            UPDATE REPORT
-            SET feedback = %s,
-                teacher_response = %s
+            DELETE FROM report
             WHERE report_id = %s
         """
         with self.get_cursor() as curr:
             try:
-                curr.execute(qry, (
-                    updates.get('feedback'),
-                    updates.get('teacher_response'),
-                    report_id
-                ))
+                curr.execute(qry, (report_id,))
+            except Exception as e:
+                print(f"Failed to delete report {report_id}: {e}")
+
+            
+    def log_admin_action(self, admin_user_id, action, target_user_id):
+        qry = """
+            INSERT INTO admin_log (admin_user_id, action, target_user_id)
+            VALUES (%s, %s, %s)
+        """
+        with self.get_cursor() as curr:
+            try:
+                curr.execute(qry, (admin_user_id, action, target_user_id))
+            except Exception as e:
+                print(f"Failed to log admin action: {e}")
+
+    def get_admin_logs(self):
+        qry = """
+            SELECT l.timestamp, a.username AS admin_username, 
+                t.username AS target_username, l.action
+            FROM admin_log l
+            JOIN user_proj a ON l.admin_user_id = a.user_id
+            JOIN user_proj t ON l.target_user_id = t.user_id
+            ORDER BY l.timestamp DESC
+        """ 
+        with self.get_cursor() as curr:
+            curr.execute(qry)
+            return curr.fetchall()
+
+    def update_report(self, report_id, updates):
+        '''Update a report in the database with dynamic fields'''
+        if not updates:
+            return False
+
+        set_clauses = []
+        values = []
+
+        for key, value in updates.items():
+            set_clauses.append(f"{key} = %s")
+            values.append(value)
+
+        qry = f"""
+            UPDATE REPORT
+            SET {', '.join(set_clauses)}
+            WHERE report_id = %s
+        """
+        values.append(report_id)
+
+        with self.get_cursor() as curr:
+            try:
+                curr.execute(qry, values)
                 return curr.rowcount > 0
             except Exception as e:
                 print("update_report error:", e)
                 return False
 
 
+    def get_teacher_by_user_name(self, username):
+        query = """
+        SELECT t.teacher_id, u.full_name
+        FROM TEACHER t
+        JOIN USER_PROJ u ON t.user_id = u.user_id
+        WHERE u.username = %s
+        """
+        with self.get_cursor() as curr:
+            curr.execute(query, (username,))
+            row = curr.fetchone()
+            if row:
+                class TeacherObj:
+                    def __init__(self, teacher_id, full_name):
+                        self.teacher_id = teacher_id
+                        self.full_name = full_name
+                return TeacherObj(*row)
+            return None
 
 # ===========================================================================
 db = Database()

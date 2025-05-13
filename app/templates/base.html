@@ -68,7 +68,7 @@
                         <li><a href="{{ url_for('admin.manage_appoint') }}">Manage Appointments</a></li>
                     {% endif %}
         
-                    {% if current_user.role == 'superuser' %}
+                    {% if current_user.role == 'admin_super' %}
                         <li><a href="{{ url_for('admin.dashboard') }}">Dashboard</a></li>
                         <li><a href="{{ url_for('admin.list_users') }}">Manage Users</a></li>
                         <li><a href="{{ url_for('admin.manage_appoint') }}">Manage Appointments</a></li>
