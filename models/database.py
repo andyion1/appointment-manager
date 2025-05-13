@@ -336,6 +336,37 @@ class Database:
             except Exception as e:
                 print("get_appointments_with_details error:", e)
                 return []
+            
+    def get_appointment_with_details(self, cond):
+        '''Returns a single Appointment object with student and teacher full names'''
+        qry = f"""
+            SELECT a.appointment_id, a.student_id, a.teacher_id, 
+                a.appointment_date, a.appointment_time, a.status, 
+                a.reason, a.created_at,
+                su.full_name as student_name, 
+                tu.full_name as teacher_name
+            FROM APPOINTMENT a
+            JOIN STUDENT s ON a.student_id = s.student_id
+            JOIN TEACHER t ON a.teacher_id = t.teacher_id
+            JOIN USER_PROJ su ON s.user_id = su.user_id
+            JOIN USER_PROJ tu ON t.user_id = tu.user_id
+            WHERE {cond}
+        """
+        with self.get_cursor() as curr:
+            try:
+                curr.execute(qry)
+                row = curr.fetchone()
+                if row:
+                    # first 8 values go into constructor
+                    appointment = Appointment(*row[:8])
+                    # set optional name fields
+                    appointment.student_name = row[8]
+                    appointment.teacher_name = row[9]
+                    return appointment
+                return None
+            except Exception as e:
+                print(f"get_appointment_with_details error: {e}")
+                return None
 
     def update_appointment(self, appointment_id, updates):
         '''Update an appointment in the database'''
@@ -367,6 +398,15 @@ class Database:
             except Exception as e:
                 print("delete_appointment error:", e)
                 return False
+            
+    def get_reports(self, cond=None):
+        qry = "SELECT * FROM REPORT"
+        if cond:
+            qry += f" WHERE {cond}"
+        qry += " ORDER BY created_at DESC"
+        with self.get_cursor() as curr:
+            curr.execute(qry)
+            return curr.fetchall()
             
     def get_report(self, cond):
         '''Returns a Report object based on the provided condition'''
