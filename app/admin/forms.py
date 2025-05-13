@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import EmailField, FileField, StringField, PasswordField, SubmitField, SelectField
+from wtforms import DateField, EmailField, FileField, StringField, PasswordField, SubmitField, SelectField, TimeField
 from wtforms.validators import DataRequired, Length, EqualTo
 from flask_wtf.file import FileRequired, FileAllowed
 
@@ -36,3 +36,17 @@ class AdminCreationForm(FlaskForm):
     ], validators=[DataRequired(message='Please select an admin role')])
     
     submit = SubmitField('Create Admin')
+
+class AppointmentUpdateForm(FlaskForm):
+    student_id = SelectField('Student', coerce=int, validators=[DataRequired()])
+    teacher_id = SelectField('Teacher', coerce=int, validators=[DataRequired()])
+    appointment_date = DateField('Date', format='%Y-%m-%d', validators=[DataRequired()])
+    appointment_time = TimeField('Time', format='%H:%M', validators=[DataRequired()])
+    status = SelectField('Status', choices=[
+        ('pending', 'Pending'),
+        ('confirmed', 'Confirmed'),
+        ('completed', 'Completed'),
+        ('cancelled', 'Cancelled')
+    ], validators=[DataRequired()])
+    reason = StringField('Reason', validators=[DataRequired()])
+    submit = SubmitField('Update Appointment')

@@ -313,10 +313,9 @@ class Database:
 
 
     def get_appointments_with_details(self, cond=None):
-        '''Returns appointments with student and teacher names'''
         qry = """
-            SELECT a.appointment_id, a.student_id, a.teacher_id, a.appointment_date, 
-                a.status, a.created_at, a.appointment_time, a.reason,
+            SELECT a.appointment_id, a.student_id, a.teacher_id, a.appointment_date,
+                a.appointment_time, a.status, a.reason, a.created_at,
                 su.full_name as student_name, tu.full_name as teacher_name
             FROM APPOINTMENT a
             JOIN STUDENT s ON a.student_id = s.student_id
@@ -327,16 +326,23 @@ class Database:
         if cond:
             qry += f" WHERE {cond}"
         qry += " ORDER BY a.appointment_date DESC, a.appointment_time ASC"
-        
+
         with self.get_cursor() as curr:
             try:
                 curr.execute(qry)
-                appointments = [Appointment(*row) for row in curr.fetchall()]
+                rows = curr.fetchall()
+                appointments = []
+                for row in rows:
+                    appt = Appointment(*row[:8])  # first 8 fields = expected constructor args
+                    appt.student_name = row[8]
+                    appt.teacher_name = row[9]
+                    appointments.append(appt)
                 return appointments
             except Exception as e:
                 print("get_appointments_with_details error:", e)
                 return []
-            
+
+
     def get_appointment_with_details(self, cond):
         '''Returns a single Appointment object with student and teacher full names'''
         qry = f"""
@@ -368,25 +374,21 @@ class Database:
                 print(f"get_appointment_with_details error: {e}")
                 return None
 
-    def update_appointment(self, appointment_id, updates):
-        '''Update an appointment in the database'''
-        set_clauses = []
-        for key, value in updates.items():
-            if isinstance(value, str):
-                set_clauses.append(f"{key} = '{value}'")
-            else:
-                set_clauses.append(f"{key} = {value}")
-        
-        set_clause = ", ".join(set_clauses)
-        qry = f"UPDATE APPOINTMENT SET {set_clause} WHERE appointment_id = {appointment_id}"
-        
+    def update_appointment(self, appointment_id, updates: dict):
+        set_clause = ", ".join([f"{key} = %s" for key in updates])
+        values = list(updates.values()) + [appointment_id]
+
+        query = f"""
+            UPDATE appointment
+            SET {set_clause}
+            WHERE appointment_id = %s
+        """
+
         with self.get_cursor() as curr:
             try:
-                curr.execute(qry)
-                return True
+                curr.execute(query, values)
             except Exception as e:
                 print("update_appointment error:", e)
-                return False
 
     def delete_appointment(self, appointment_id):
         '''Delete an appointment from the database'''
@@ -444,6 +446,30 @@ class Database:
             except Exception as e:
                 print("add_report error:", e)
                 return None
+            
+    def update_report(self, report_id, new_content):
+        qry = """
+            UPDATE report
+            SET content = %s, updated_at = CURRENT_TIMESTAMP
+            WHERE report_id = %s
+        """
+        with self.get_cursor() as curr:
+            try:
+                curr.execute(qry, (new_content, report_id))
+            except Exception as e:
+                print(f"Failed to update report {report_id}: {e}")
+
+    def delete_report(self, report_id):
+        qry = """
+            DELETE FROM report
+            WHERE report_id = %s
+        """
+        with self.get_cursor() as curr:
+            try:
+                curr.execute(qry, (report_id,))
+            except Exception as e:
+                print(f"Failed to delete report {report_id}: {e}")
+
             
     def log_admin_action(self, admin_user_id, action, target_user_id):
         qry = """

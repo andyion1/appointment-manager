@@ -3,6 +3,7 @@ from app.user.user import User
 from flask_login import current_user, login_required
 from models.data_classes import Appointment, Report
 from app.admin.forms import AdminCreationForm
+from app.admin.forms import AppointmentUpdateForm
 from models.database import db
 import pdb
 
@@ -47,6 +48,7 @@ def delete_user(user_id):
         return redirect(url_for('admin.list_users'))
     db.delete_user(user_id)
     flash("User deleted.", "success")
+    db.log_admin_action(current_user.user_id, 'delete user', user_id)
     return redirect(url_for('admin.list_users'))
 
 @adminBlueprint.route("/manage_appoint")
@@ -65,9 +67,64 @@ def view_appointment(appointment_id):
         flash("Access denied", "danger")
         return redirect(url_for("main.index"))
 
-    appointment = db.get_appointment(f"appointment_id = {appointment_id}")
+    appointment = db.get_appointment_with_details(f"appointment_id = {appointment_id}")
     return render_template("appointment_detail.html", appointment=appointment, logo="static/images/logo.PNG", css="static/css/style.css")
 
+from datetime import datetime, time
+
+@adminBlueprint.route("/appointments/<int:appointment_id>/edit", methods=["GET", "POST"])
+@login_required
+def edit_appointment(appointment_id):
+    if current_user.role not in ['admin_appoint', 'admin_super']:
+        flash("Access denied.", "danger")
+        return redirect(url_for("main.index"))
+
+    # Get appointment object
+    appointment = db.get_appointment_with_details(f"appointment_id = {appointment_id}")
+    if not appointment:
+        flash("Appointment not found.", "danger")
+        return redirect(url_for("admin.manage_appoint"))
+
+    # Create form with populated values
+    form = AppointmentUpdateForm(obj=appointment)
+
+    # Populate dropdowns
+    form.student_id.choices = [(s.student_id, s.full_name) for s in db.get_students()]
+    form.teacher_id.choices = [(t.teacher_id, t.full_name) for t in db.get_teachers()]
+
+    # If form submitted
+    if form.validate_on_submit():
+        db.update_appointment(appointment_id, {
+            'student_id': form.student_id.data,
+            'teacher_id': form.teacher_id.data,
+            'appointment_date': form.appointment_date.data,
+            'appointment_time': form.appointment_time.data,
+            'status': form.status.data,
+            'reason': form.reason.data
+        })
+        flash("Appointment updated successfully.", "success")
+        return redirect(url_for("admin.manage_appoint"))
+
+    return render_template("appointment_edit.html", form=form, appointment=appointment)
+
+
+
+@adminBlueprint.route("/appointments/<int:appointment_id>/delete", methods=["POST"])
+@login_required
+def delete_appointment(appointment_id):
+    if current_user.role not in ['admin_appoint', 'admin_super']:
+        flash("Access denied.", "danger")
+        return redirect(url_for('main.index'))
+
+    appointment = db.get_appointment(f"appointment_id = {appointment_id}")
+    if not appointment:
+        flash("Appointment not found.", "danger")
+        return redirect(url_for("admin.manage_appoint"))
+
+    db.delete_appointment(appointment_id)
+    db.log_admin_action(current_user.user_id, f"deleted appointment #{appointment_id}", appointment.student_id)
+    flash("Appointment deleted.", "info")
+    return redirect(url_for("admin.manage_appoint"))
 
 @adminBlueprint.route('/users/<int:user_id>/warn', methods=['POST'])
 @login_required
@@ -80,6 +137,7 @@ def warn_user(user_id):
         return redirect(url_for('admin.list_users'))
     db.update_user(user_id, {'warned': True})
     flash("User has been warned.", "warning")
+    db.log_admin_action(current_user.user_id, 'warned user', user_id)
     return redirect(url_for('admin.view_user', user_id=user_id))
 
 @adminBlueprint.route('/users/<int:user_id>/toggle_block', methods=['POST'])
@@ -93,6 +151,8 @@ def toggle_block_user(user_id):
     new_status = 'blocked' if user.status == 'active' else 'active'
     db.update_user(user_id, {'status': new_status})
     flash(f"User has been {'blocked' if new_status == 'blocked' else 'unblocked'}.", "info")
+    action = 'blocked user' if new_status == 'blocked' else 'unblocked user'
+    db.log_admin_action(current_user.user_id, action, user_id)
     return redirect(url_for('admin.view_user', user_id=user_id))
 
 
@@ -126,14 +186,24 @@ def edit_report(report_id):
     if current_user.role not in ['admin_appoint', 'admin_super']:
         flash("Access denied", "danger")
         return redirect(url_for('main.index'))
+
+    report = db.get_reports(f"report_id = {report_id}")
+    if not report:
+        flash("Report not found.", "danger")
+        return redirect(url_for('admin.manage_reports'))
+
+    report_obj = report[0]
+
     if request.method == 'POST':
         content = request.form.get("content")
         db.update_report(report_id, content)
+
+        db.log_admin_action(current_user.user_id, f"updated report #{report_id}", report_obj.author_id)
+
         flash("Report updated.", "success")
         return redirect(url_for('admin.manage_reports'))
-    report = db.get_reports(f"report_id = {report_id}")
-    return render_template("report_edit.html", report=report[0])
 
+    return render_template("report_edit.html", report=report_obj)
 
 @adminBlueprint.route('/reports/<int:report_id>/delete', methods=['POST'])
 @login_required
@@ -141,9 +211,20 @@ def delete_report(report_id):
     if current_user.role not in ['admin_appoint', 'admin_super']:
         flash("Access denied", "danger")
         return redirect(url_for('main.index'))
+
+    report = db.get_reports(f"report_id = {report_id}")
+    if not report:
+        flash("Report not found.", "danger")
+        return redirect(url_for('admin.manage_reports'))
+
+    author_id = report[0].author_id
+
     db.delete_report(report_id)
+    db.log_admin_action(current_user.user_id, f"deleted report #{report_id}", author_id)
+
     flash("Report deleted.", "info")
     return redirect(url_for('admin.manage_reports'))
+
 
 @adminBlueprint.route("/admin/create", methods=["GET", "POST"])
 @login_required
@@ -163,12 +244,20 @@ def create_admin():
             role=form.role.data
         )
         if new_admin:
+            # Log the creation of the new admin
+            db.log_admin_action(
+                admin_user_id=current_user.user_id,
+                action=f"created {form.role.data}",
+                target_user_id=new_admin.user_id
+            )
+
             flash(f"Admin '{form.username.data}' created successfully!", "success")
             return redirect(url_for('admin.dashboard'))
         else:
             flash("An error occurred. Admin was not created.", "danger")
 
     return render_template("create_admin.html", form=form, logo="static/images/logo.PNG", css="static/css/style.css")
+
 
 @adminBlueprint.route('/admin/logs')
 @login_required
