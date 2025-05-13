@@ -400,7 +400,7 @@ class Database:
                 return False
             
     def get_reports(self, cond=None):
-        qry = "SELECT * FROM REPORT"
+        qry = "SELECT * FROM report"
         if cond:
             qry += f" WHERE {cond}"
         qry += " ORDER BY created_at DESC"
@@ -411,31 +411,42 @@ class Database:
     def get_report(self, cond):
         '''Returns a Report object based on the provided condition'''
         from models.data_classes import Report
-        qry = f"SELECT * FROM REPORT WHERE {cond}"
+        qry = f"SELECT * FROM report WHERE {cond}"
         with self.get_cursor() as curr:
             try:
                 curr.execute(qry)
                 data = curr.fetchone()
                 if data:
-                    return Report(*data)
+                    # Make sure the parameters match the order of columns in the database
+                    return Report(
+                        report_id=data[0],
+                        generated_by=data[1],
+                        content=data[2],
+                        created_at=data[3],
+                        appointment_id=data[4],
+                        feedback=data[5],
+                        teacher_response=data[6]
+                    )
                 return None
             except Exception as e:
                 print(f"get_report error: {e}")
                 return None
 
+
     def add_report(self, report):
         '''Add a report to the database'''
         qry = """
-            INSERT INTO REPORT (appointment_id, generated_by, content, feedback, teacher_response)
-            VALUES (%s, %s, %s, %s, %s)
+            INSERT INTO report (appointment_id, generated_by, content, created_at, feedback, teacher_response)
+            VALUES (%s, %s, %s, %s, %s, %s)
             RETURNING report_id
         """
         with self.get_cursor() as curr:
             try:
                 curr.execute(qry, (
-                    report.appointment_id, 
-                    report.generated_by, 
+                    report.appointment_id,    # Integer expected here
+                    report.generated_by,      # Changed from author_id
                     report.content,
+                    report.created_at,        # Added created_at parameter
                     report.feedback,
                     report.teacher_response
                 ))

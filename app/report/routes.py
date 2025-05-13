@@ -1,3 +1,4 @@
+import pdb
 from flask import render_template, redirect, url_for, Blueprint, flash
 from flask_login import login_required, current_user
 from models.database import db
@@ -132,16 +133,15 @@ def create(appointment_id):
         # Create a new report
         new_report = Report(
             0,                          # report_id (auto-assigned)
-            appointment_id,            # appointment_id
             current_user.user_id,      # generated_by
             form.content.data,         # content
             datetime.now(),            # created_at
+            appointment_id,            # appointment_id (correct position)
             form.feedback.data if current_user.role == 'student' else None,
             form.teacher_response.data if current_user.role == 'teacher' else None
         )
-
         report_id = db.add_report(new_report)
-
+        pdb.set_trace()
         if report_id:
             flash("Report created successfully!", "success")
             return redirect(url_for('report.report', report_id=report_id))
