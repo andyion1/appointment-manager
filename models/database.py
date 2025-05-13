@@ -410,7 +410,7 @@ class Database:
             return curr.fetchall()
         
     def get_reports_with_details(self, condition=None):
-        '''Get reports with appointment, student, and teacher details'''
+        '''Get reports with student and teacher full names'''
         qry = """
             SELECT 
                 r.report_id,
@@ -420,36 +420,45 @@ class Database:
                 r.appointment_id,
                 r.feedback,
                 r.teacher_response,
-                a.student_id,
-                a.teacher_id
+                su.full_name AS student_name,
+                tu.full_name AS teacher_name
             FROM REPORT r
             JOIN APPOINTMENT a ON r.appointment_id = a.appointment_id
+            JOIN STUDENT s ON a.student_id = s.student_id
+            JOIN TEACHER t ON a.teacher_id = t.teacher_id
+            JOIN USER_PROJ su ON s.user_id = su.user_id
+            JOIN USER_PROJ tu ON t.user_id = tu.user_id
         """
         if condition:
             qry += f" WHERE {condition}"
         qry += " ORDER BY r.created_at DESC"
 
         with self.get_cursor() as curr:
-            curr.execute(qry)
-            rows = curr.fetchall()
+            try:
+                curr.execute(qry)
+                rows = curr.fetchall()
 
-            reports = []
-            for row in rows:
-                report = Report(
-                    report_id=row[0],
-                    generated_by=row[1],
-                    content=row[2],
-                    created_at=row[3],
-                    appointment_id=row[4],
-                    feedback=row[5],
-                    teacher_response=row[6]
-                )
-                # Optional extras
-                report.student_id = row[7]
-                report.teacher_id = row[8]
-                reports.append(report)
+                reports = []
+                for row in rows:
+                    report = Report(
+                        report_id=row[0],
+                        generated_by=row[1],
+                        content=row[2],
+                        created_at=row[3],
+                        appointment_id=row[4],
+                        feedback=row[5],
+                        teacher_response=row[6]
+                    )
+                    report.student_name = row[7]
+                    report.teacher_name = row[8]
+                    reports.append(report)
 
-            return reports
+                return reports
+            except Exception as e:
+                print("get_reports_with_details error:", e)
+                return []
+
+
 
             
     def get_report(self, cond):
@@ -475,6 +484,50 @@ class Database:
             except Exception as e:
                 print(f"get_report error: {e}")
                 return None
+            
+    def get_report_with_details(self, cond):
+        '''Returns a single Report object with student and teacher full names'''
+        qry = f"""
+            SELECT 
+                r.report_id,
+                r.generated_by,
+                r.content,
+                r.created_at,
+                r.appointment_id,
+                r.feedback,
+                r.teacher_response,
+                su.full_name AS student_name,
+                tu.full_name AS teacher_name
+            FROM REPORT r
+            JOIN APPOINTMENT a ON r.appointment_id = a.appointment_id
+            JOIN STUDENT s ON a.student_id = s.student_id
+            JOIN TEACHER t ON a.teacher_id = t.teacher_id
+            JOIN USER_PROJ su ON s.user_id = su.user_id
+            JOIN USER_PROJ tu ON t.user_id = tu.user_id
+            WHERE {cond}
+        """
+        with self.get_cursor() as curr:
+            try:
+                curr.execute(qry)
+                row = curr.fetchone()
+                if row:
+                    report = Report(
+                        report_id=row[0],
+                        generated_by=row[1],
+                        content=row[2],
+                        created_at=row[3],
+                        appointment_id=row[4],
+                        feedback=row[5],
+                        teacher_response=row[6]
+                    )
+                    report.student_name = row[7]
+                    report.teacher_name = row[8]
+                    return report
+                return None
+            except Exception as e:
+                print(f"get_report_with_details error: {e}")
+                return None
+
 
 
     def add_report(self, report):

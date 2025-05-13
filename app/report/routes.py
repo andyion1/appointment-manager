@@ -25,7 +25,7 @@ def view():
 @login_required
 def report(report_id):
     """View a specific report"""
-    report = db.get_report(f"report_id = {report_id}")
+    report = db.get_report_with_details(f"report_id = {report_id}")
     
     if not report:
         flash("Report not found", "danger")
@@ -43,7 +43,7 @@ def report(report_id):
         flash("You don't have permission to view this report", "danger")
         return redirect(url_for('report.view'))
 
-    appointment = db.get_appointment(f"appointment_id = {report.appointment_id}")
+    appointment = db.get_appointment_with_details(f"appointment_id = {report.appointment_id}")
     appointment_details = db.get_appointments_with_details(f"a.appointment_id = {report.appointment_id}")
     
     appointment_detail = appointment_details[0] if appointment_details else None
