@@ -44,7 +44,8 @@
         <a href="{{ url_for('admin.create_admin') }}" class="btn btn-success">Create New Admin</a>
         <a href="{{ url_for('admin.list_users') }}" class="btn btn-primary">Manage Users</a>
         <a href="{{ url_for('admin.manage_appoint') }}" class="btn btn-secondary">Manage Appointments</a>
-        <!-- Add a real report manager later -->
+        <a href="{{ url_for('admin.manage_reports') }}" class="btn btn-info">Manage Reports</a>
+        <a href="{{ url_for('admin.view_logs') }}" class="btn btn-warning mt-2">View Admin Logs</a>
     </div>
 </div>
 {% endblock %}

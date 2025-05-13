@@ -404,6 +404,32 @@ class Database:
             except Exception as e:
                 print("add_report error:", e)
                 return None
+            
+    def log_admin_action(self, admin_user_id, action, target_user_id):
+        qry = """
+            INSERT INTO admin_log (admin_user_id, action, target_user_id)
+            VALUES (%s, %s, %s)
+        """
+        with self.get_cursor() as curr:
+            try:
+                curr.execute(qry, (admin_user_id, action, target_user_id))
+            except Exception as e:
+                print(f"Failed to log admin action: {e}")
+
+    def get_admin_logs(self):
+        qry = """
+            SELECT l.timestamp, a.username AS admin_username, 
+                t.username AS target_username, l.action
+            FROM admin_log l
+            JOIN user_proj a ON l.admin_user_id = a.user_id
+            JOIN user_proj t ON l.target_user_id = t.user_id
+            ORDER BY l.timestamp DESC
+        """ 
+        with self.get_cursor() as curr:
+            curr.execute(qry)
+            return curr.fetchall()
+
+
 
 # ===========================================================================
 db = Database()

@@ -170,3 +170,14 @@ def create_admin():
 
     return render_template("create_admin.html", form=form, logo="static/images/logo.PNG", css="static/css/style.css")
 
+@adminBlueprint.route('/admin/logs')
+@login_required
+def view_logs():
+    if current_user.role != 'admin_super':
+        flash("Access denied", "danger")
+        return redirect(url_for('main.home'))
+
+    logs = db.get_admin_logs()
+    return render_template("admin_logs.html", logs=logs)
+
+
