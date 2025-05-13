@@ -10,33 +10,37 @@
 </div>
 
 {% if appointments %}
-<table class="appointment-table">
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Date</th>
-            <th>Time</th>
-            <th>Status</th>
-            <th>Reason</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for appointment in appointments %}
-        <tr>
-            <td>{{ appointment.appointment_id }}</td>
-            <td>{{ appointment.appointment_date }}</td>
-            <td>{{ appointment.appointment_time }}</td>
-            <td>{{ appointment.status }}</td> <!-- Just display the status without wrapping it in the span -->
-            <td>{{ appointment.reason }}</td>
-            <td>
-                <a href="{{ url_for('appointment.appointment', appointment_id=appointment.appointment_id) }}" class="button-link">View</a>
-            </td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+<div class="appointments-grid">
+    {% for appointment in appointments %}
+    <div class="appointment-card">
+        <div class="appointment-card-header">
+            <h3>Appointment #{{ appointment.appointment_id }}</h3>
+            <span class="status-badge {{ appointment.status }}">{{ appointment.status }}</span>
+        </div>
+        <div class="appointment-card-content">
+            <div class="appointment-card-detail">
+                <span class="detail-label">Date:</span>
+                <span class="detail-value">{{ appointment.appointment_date }}</span>
+            </div>
+            <div class="appointment-card-detail">
+                <span class="detail-label">Time:</span>
+                <span class="detail-value">{{ appointment.appointment_time }}</span>
+            </div>
+            <div class="appointment-card-detail appointment-card-reason">
+                <span class="detail-label">Reason:</span>
+                <span class="detail-value">{{ appointment.reason }}</span>
+            </div>
+        </div>
+        <div class="appointment-card-footer">
+            <a href="{{ url_for('appointment.appointment', appointment_id=appointment.appointment_id) }}" class="button-link">View Details</a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
 {% else %}
-<p>No appointments found.</p>
+<div class="no-appointments">
+    <p>No appointments found.</p>
+    <p>Click "Book New Appointment" to schedule your first meeting!</p>
+</div>
 {% endif %}
 {% endblock %}
