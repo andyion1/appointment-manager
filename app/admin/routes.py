@@ -2,6 +2,7 @@ from flask import flash, render_template, redirect, request, url_for, Blueprint
 from app.user.user import User
 from flask_login import current_user, login_required
 from models.data_classes import Appointment, Report
+from app.admin.forms import AdminCreationForm
 from models.database import db
 import pdb
 
@@ -10,7 +11,7 @@ adminBlueprint = Blueprint("admin", __name__, template_folder='templates')
 @adminBlueprint.route('/admin/users')
 @login_required
 def list_users():
-    if current_user.role not in ['admin_user', 'superuser']:
+    if current_user.role not in ['admin_user', 'admin_super']:
         flash("Access denied", "danger")
         return redirect(url_for('main.index'))
     raw_users = db.get_users()
@@ -23,7 +24,7 @@ def list_users():
 @adminBlueprint.route('/users/<int:user_id>')
 @login_required
 def view_user(user_id):
-    if current_user.role not in ['admin_user', 'superuser']:
+    if current_user.role not in ['admin_user', 'admin_super']:
         flash("Access denied", "danger")
         return redirect(url_for('main.home'))
 
@@ -37,7 +38,7 @@ def view_user(user_id):
 @adminBlueprint.route('/users/<int:user_id>/delete', methods=['POST'])
 @login_required
 def delete_user(user_id):
-    if current_user.role not in ['admin_user', 'superuser']:
+    if current_user.role not in ['admin_user', 'admin_super']:
         flash("Access denied", "danger")
         return redirect(url_for('main.home'))
 
@@ -51,7 +52,7 @@ def delete_user(user_id):
 @adminBlueprint.route("/manage_appoint")
 @login_required
 def manage_appoint():
-    if current_user.role not in ['admin_appoint', 'superuser']:
+    if current_user.role not in ['admin_appoint', 'admin_super']:
         flash("Access denied: You do not have permission to view this page.", "danger")
         return redirect(url_for("main.index"))
     appointments = db.get_appointments_with_details()
@@ -60,7 +61,7 @@ def manage_appoint():
 @adminBlueprint.route("/appointments/<int:appointment_id>")
 @login_required
 def view_appointment(appointment_id):
-    if current_user.role not in ['admin_appoint', 'superuser']:
+    if current_user.role not in ['admin_appoint', 'admin_super']:
         flash("Access denied", "danger")
         return redirect(url_for("main.index"))
 
@@ -71,7 +72,7 @@ def view_appointment(appointment_id):
 @adminBlueprint.route('/users/<int:user_id>/warn', methods=['POST'])
 @login_required
 def warn_user(user_id):
-    if current_user.role not in ['admin_user', 'superuser']:
+    if current_user.role not in ['admin_user', 'admin_super']:
         flash("Access denied", "danger")
         return redirect(url_for('main.home'))
     if current_user.role == 'admin_user' and current_user.role not in ['student', 'teacher']:
@@ -84,7 +85,7 @@ def warn_user(user_id):
 @adminBlueprint.route('/users/<int:user_id>/toggle_block', methods=['POST'])
 @login_required
 def toggle_block_user(user_id):
-    if current_user.role not in ['admin_user', 'superuser']:
+    if current_user.role not in ['admin_user', 'admin_super']:
         flash("Access denied", "danger")
         return redirect(url_for('main.home'))
 
@@ -98,21 +99,21 @@ def toggle_block_user(user_id):
 @adminBlueprint.route("/admin/dashboard")
 @login_required
 def dashboard():
-    if current_user.role != 'superuser':
+    if current_user.role != 'admin_super':
         flash("Access denied", "danger")
         return redirect(url_for('main.home'))
 
     user_count = len(db.get_users())
     appoint_count = len(db.get_appointments_with_details())
     report_count = len(db.get_reports())
-    admin_users = [u for u in db.get_users() if u[5] in ['admin_user', 'admin_appoint', 'superuser']]  # role at index 5
+    admin_users = [u for u in db.get_users() if u[5] in ['admin_user', 'admin_appoint', 'admin_super']]  # role at index 5
 
     return render_template("dashboard.html", user_count=user_count, appoint_count=appoint_count, report_count=report_count, admin_users=admin_users, logo="static/images/logo.PNG", css="static/css/style.css")
 
 @adminBlueprint.route('/manage-reports')
 @login_required
 def manage_reports():
-    if current_user.role not in ['admin_appoint', 'superuser']:
+    if current_user.role not in ['admin_appoint', 'admin_super']:
         flash("Access denied", "danger")
         return redirect(url_for('main.index'))
     raw = db.get_reports()
@@ -122,7 +123,7 @@ def manage_reports():
 @adminBlueprint.route('/reports/<int:report_id>/edit', methods=['GET', 'POST'])
 @login_required
 def edit_report(report_id):
-    if current_user.role not in ['admin_appoint', 'superuser']:
+    if current_user.role not in ['admin_appoint', 'admin_super']:
         flash("Access denied", "danger")
         return redirect(url_for('main.index'))
     if request.method == 'POST':
@@ -137,10 +138,35 @@ def edit_report(report_id):
 @adminBlueprint.route('/reports/<int:report_id>/delete', methods=['POST'])
 @login_required
 def delete_report(report_id):
-    if current_user.role not in ['admin_appoint', 'superuser']:
+    if current_user.role not in ['admin_appoint', 'admin_super']:
         flash("Access denied", "danger")
         return redirect(url_for('main.index'))
     db.delete_report(report_id)
     flash("Report deleted.", "info")
     return redirect(url_for('admin.manage_reports'))
+
+@adminBlueprint.route("/admin/create", methods=["GET", "POST"])
+@login_required
+def create_admin():
+    if current_user.role != 'admin_super':
+        flash("Only superusers can create admin accounts.", "danger")
+        return redirect(url_for('admin.dashboard'))
+
+    form = AdminCreationForm()
+
+    if form.validate_on_submit():
+        new_admin = User.create_user(
+            username=form.username.data,
+            password=form.password.data,
+            email=form.email.data,
+            full_name=form.full_name.data,
+            role=form.role.data
+        )
+        if new_admin:
+            flash(f"Admin '{form.username.data}' created successfully!", "success")
+            return redirect(url_for('admin.dashboard'))
+        else:
+            flash("An error occurred. Admin was not created.", "danger")
+
+    return render_template("create_admin.html", form=form, logo="static/images/logo.PNG", css="static/css/style.css")
 
