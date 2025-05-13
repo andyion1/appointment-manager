@@ -4,17 +4,27 @@
 
 {% block content %}
 <h2>Our Teachers</h2>
-<p>Click a teacher to learn more about their department and office location.</p>
+<p>Browse our faculty members and learn about their departments and office locations.</p>
 
-<ul class="teacher-list">
+<div class="teachers-list">
+  {% if teachers %}
     {% for teacher in teachers %}
-        <li>
-            <a href="{{ url_for('teacher.teacher', teacher_id=teacher.teacher_id) }}">
-                {{ teacher.full_name }} - {{ teacher.department }}
-            </a>
-        </li>
-    {% else %}
-        <li>No teachers available.</li>
+      <div class="appointment-info">
+        <h3>{{ teacher.full_name }}</h3>
+        <div class="teacher-details">
+          <p><strong>Department:</strong> {{ teacher.department }}</p>
+          <p><strong>Office Location:</strong> {{ teacher.office_location }}</p>
+          <p><strong>Email:</strong> {{ teacher.email }}</p>
+        </div>
+        <div class="action-buttons">
+          <a href="{{ url_for('teacher.teacher', teacher_id=teacher.teacher_id) }}" class="submit-button primary-button">View Profile</a>
+        </div>
+      </div>
     {% endfor %}
-</ul>
+  {% else %}
+    <div class="appointment-info">
+      <p>No teachers available at this time.</p>
+    </div>
+  {% endif %}
+</div>
 {% endblock %}
