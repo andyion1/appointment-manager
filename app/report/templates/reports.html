@@ -10,7 +10,7 @@
     <thead>
         <tr>
             <th>Report ID</th>
-            <th>Appointment Date</th>
+            <th>Appointment ID</th>
             <th>Student</th>
             <th>Teacher</th>
             <th>Created At</th>
@@ -20,13 +20,13 @@
     <tbody>
         {% for report in reports %}
         <tr>
-            <td>{{ report[0] }}</td>
-            <td>{{ report[7] }}</td>
-            <td>{{ report[10] }}</td>
-            <td>{{ report[11] }}</td>
-            <td>{{ report[4] }}</td>
+            <td>{{ report.report_id }}</td>
+            <td>{{ report.appointment_id }}</td>
+            <td>{{ report.student_name or 'N/A' }}</td>
+            <td>{{ report.teacher_name or 'N/A' }}</td>
+            <td>{{ report.created_at }}</td>
             <td>
-                <a href="{{ url_for('report.report', report_id=report[0]) }}" class="button-link">View</a>
+                <a href="{{ url_for('report.report', report_id=report.report_id) }}" class="button-link">View</a>
             </td>
         </tr>
         {% endfor %}

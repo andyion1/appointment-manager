@@ -2,6 +2,7 @@ import os
 import sys
 
 from models.data_classes import Appointment
+from models.data_classes import Report
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import psycopg2
 from config import Config 
@@ -400,42 +401,122 @@ class Database:
                 return False
             
     def get_reports(self, cond=None):
-        qry = "SELECT * FROM REPORT"
+        qry = "SELECT * FROM report"
         if cond:
             qry += f" WHERE {cond}"
         qry += " ORDER BY created_at DESC"
         with self.get_cursor() as curr:
             curr.execute(qry)
             return curr.fetchall()
-            
-    def get_report(self, cond):
-        '''Returns a Report object based on the provided condition'''
-        from models.data_classes import Report
-        qry = f"SELECT * FROM REPORT WHERE {cond}"
+        
+    def get_reports_with_details(self, condition=None):
+        '''Get reports with student and teacher full names'''
+        qry = """
+            SELECT 
+                r.report_id,
+                r.generated_by,
+                r.created_at,
+                r.appointment_id,
+                r.feedback,
+                r.teacher_response,
+                su.full_name AS student_name,
+                tu.full_name AS teacher_name
+            FROM REPORT r
+            JOIN APPOINTMENT a ON r.appointment_id = a.appointment_id
+            JOIN STUDENT s ON a.student_id = s.student_id
+            JOIN TEACHER t ON a.teacher_id = t.teacher_id
+            JOIN USER_PROJ su ON s.user_id = su.user_id
+            JOIN USER_PROJ tu ON t.user_id = tu.user_id
+        """
+        if condition:
+            qry += f" WHERE {condition}"
+        qry += " ORDER BY r.created_at DESC"
+
         with self.get_cursor() as curr:
             try:
                 curr.execute(qry)
-                data = curr.fetchone()
-                if data:
-                    return Report(*data)
+                rows = curr.fetchall()
+
+                reports = []
+                for row in rows:
+                    report = Report(
+                        report_id=row[0],
+                        generated_by=row[1],
+                        created_at=row[2],
+                        appointment_id=row[3],
+                        feedback=row[4],
+                        teacher_response=row[5]
+                    )
+                    report.student_name = row[6]
+                    report.teacher_name = row[7]
+                    reports.append(report)
+
+                return reports
+            except Exception as e:
+                print("get_reports_with_details error:", e)
+                return []
+
+
+
+
+                
+    def get_report_with_details(self, cond):
+        '''Returns a single Report object with student and teacher full names'''
+        qry = f"""
+            SELECT 
+                r.report_id,
+                r.generated_by,
+                r.created_at,
+                r.appointment_id,
+                r.feedback,
+                r.teacher_response,
+                su.full_name AS student_name,
+                tu.full_name AS teacher_name
+            FROM REPORT r
+            JOIN APPOINTMENT a ON r.appointment_id = a.appointment_id
+            JOIN STUDENT s ON a.student_id = s.student_id
+            JOIN TEACHER t ON a.teacher_id = t.teacher_id
+            JOIN USER_PROJ su ON s.user_id = su.user_id
+            JOIN USER_PROJ tu ON t.user_id = tu.user_id
+            WHERE {cond}
+        """
+        with self.get_cursor() as curr:
+            try:
+                curr.execute(qry)
+                row = curr.fetchone()
+                if row:
+                    report = Report(
+                        report_id=row[0],
+                        generated_by=row[1],
+                        created_at=row[2],
+                        appointment_id=row[3],
+                        feedback=row[4],
+                        teacher_response=row[5]
+                    )
+                    report.student_name = row[6]
+                    report.teacher_name = row[7]
+                    return report
                 return None
             except Exception as e:
-                print(f"get_report error: {e}")
+                print(f"get_report_with_details error: {e}")
                 return None
+
+
+
 
     def add_report(self, report):
         '''Add a report to the database'''
         qry = """
-            INSERT INTO REPORT (appointment_id, generated_by, content, feedback, teacher_response)
+            INSERT INTO report (appointment_id, generated_by, created_at, feedback, teacher_response)
             VALUES (%s, %s, %s, %s, %s)
             RETURNING report_id
         """
         with self.get_cursor() as curr:
             try:
                 curr.execute(qry, (
-                    report.appointment_id, 
-                    report.generated_by, 
-                    report.content,
+                    report.appointment_id,
+                    report.generated_by,
+                    report.created_at,
                     report.feedback,
                     report.teacher_response
                 ))
@@ -444,6 +525,29 @@ class Database:
             except Exception as e:
                 print("add_report error:", e)
                 return None
+
+            
+    def update_report(self, report_id, updates):
+        '''Update a report in the database'''
+        qry = """
+            UPDATE REPORT
+            SET feedback = %s,
+                teacher_response = %s
+            WHERE report_id = %s
+        """
+        with self.get_cursor() as curr:
+            try:
+                curr.execute(qry, (
+                    updates.get('feedback'),
+                    updates.get('teacher_response'),
+                    report_id
+                ))
+                return curr.rowcount > 0
+            except Exception as e:
+                print("update_report error:", e)
+                return False
+
+
 
 # ===========================================================================
 db = Database()

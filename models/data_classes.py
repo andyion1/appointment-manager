@@ -1,5 +1,3 @@
-# Might make user related stuff after.
-
 class Appointment:
     def __init__(self, *args):
         self.appointment_id = args[0]
@@ -18,12 +16,14 @@ class Appointment:
 
 
 class Report:
-    def __init__(self, report_id, appointment_id, author_id, content, created_at, feedback=None, teacher_response=None):
+    def __init__(self, report_id, generated_by, created_at, appointment_id, feedback=None, teacher_response=None):
         self.report_id = report_id
-        self.appointment_id = appointment_id
-        self.author_id = author_id
-        self.content = content
+        self.generated_by = generated_by 
         self.created_at = created_at
+        self.appointment_id = appointment_id
         self.feedback = feedback
         self.teacher_response = teacher_response
 
+        # Optional attributes (to be set later)
+        self.student_name = None
+        self.teacher_name = None
