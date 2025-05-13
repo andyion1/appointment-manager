@@ -2,6 +2,7 @@ import os
 import sys
 
 from models.data_classes import Appointment
+from models.data_classes import Report
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import psycopg2
 from config import Config 
@@ -407,6 +408,49 @@ class Database:
         with self.get_cursor() as curr:
             curr.execute(qry)
             return curr.fetchall()
+        
+    def get_reports_with_details(self, condition=None):
+        '''Get reports with appointment, student, and teacher details'''
+        qry = """
+            SELECT 
+                r.report_id,
+                r.generated_by,
+                r.content,
+                r.created_at,
+                r.appointment_id,
+                r.feedback,
+                r.teacher_response,
+                a.student_id,
+                a.teacher_id
+            FROM REPORT r
+            JOIN APPOINTMENT a ON r.appointment_id = a.appointment_id
+        """
+        if condition:
+            qry += f" WHERE {condition}"
+        qry += " ORDER BY r.created_at DESC"
+
+        with self.get_cursor() as curr:
+            curr.execute(qry)
+            rows = curr.fetchall()
+
+            reports = []
+            for row in rows:
+                report = Report(
+                    report_id=row[0],
+                    generated_by=row[1],
+                    content=row[2],
+                    created_at=row[3],
+                    appointment_id=row[4],
+                    feedback=row[5],
+                    teacher_response=row[6]
+                )
+                # Optional extras
+                report.student_id = row[7]
+                report.teacher_id = row[8]
+                reports.append(report)
+
+            return reports
+
             
     def get_report(self, cond):
         '''Returns a Report object based on the provided condition'''
@@ -455,6 +499,29 @@ class Database:
             except Exception as e:
                 print("add_report error:", e)
                 return None
+            
+    def update_report(self, report_id, updates):
+        '''Update a report in the database'''
+        qry = """
+            UPDATE REPORT
+            SET content = %s,
+                feedback = %s,
+                teacher_response = %s
+            WHERE report_id = %s
+        """
+        with self.get_cursor() as curr:
+            try:
+                curr.execute(qry, (
+                    updates.get('content'),
+                    updates.get('feedback'),
+                    updates.get('teacher_response'),
+                    report_id
+                ))
+                return curr.rowcount > 0
+            except Exception as e:
+                print("update_report error:", e)
+                return False
+
 
 # ===========================================================================
 db = Database()

@@ -1,5 +1,3 @@
-# Might make user related stuff after.
-
 class Appointment:
     def __init__(self, *args):
         self.appointment_id = args[0]
@@ -26,3 +24,7 @@ class Report:
         self.appointment_id = appointment_id
         self.feedback = feedback
         self.teacher_response = teacher_response
+
+        # Optional attributes (to be set later)
+        self.student_name = None
+        self.teacher_name = None

@@ -13,30 +13,12 @@ reportBlueprint = Blueprint("report", __name__, template_folder='templates')
 @reportBlueprint.route("/reports")
 @login_required
 def view():
-    """View all reports that the current user has access to"""
-    if current_user.role == 'student':
-        # Students can only see reports for their appointments
-        student = db.get_student(f"user_id = {current_user.user_id}")
-        if student:
-            cond = f"r.appointment_id IN (SELECT appointment_id FROM APPOINTMENT WHERE student_id = {student.student_id})"
-            reports = db.get_reports_with_details(cond)
-        else:
-            reports = []
-    elif current_user.role == 'teacher':
-        # Teachers can only see reports for their appointments
-        teacher = db.get_teacher(f"user_id = {current_user.user_id}")
-        if teacher:
-            cond = f"r.appointment_id IN (SELECT appointment_id FROM APPOINTMENT WHERE teacher_id = {teacher.teacher_id})"
-            reports = db.get_reports_with_details(cond)
-        else:
-            reports = []
-    elif current_user.role in ['admin_appoint', 'superuser']:
-        # Admin users can see all reports
-        reports = db.get_reports_with_details()
-    else:
-        reports = []
-    
+    """View all reports created by the current user"""
+    cond = f"r.generated_by = {current_user.user_id}"
+    reports = db.get_reports_with_details(cond)
+
     return render_template("reports.html", reports=reports)
+
 
 
 @reportBlueprint.route("/report/<int:report_id>")
@@ -48,40 +30,23 @@ def report(report_id):
     if not report:
         flash("Report not found", "danger")
         return redirect(url_for('report.view'))
-    
-    # Check if user has permission to view this report
+
     has_permission = False
     
     if current_user.role in ['admin_appoint', 'superuser']:
         has_permission = True
-    else:
-        # Get the appointment related to this report
-        appointment = db.get_appointment(f"appointment_id = {report.appointment_id}")
-        
-        if appointment:
-            if current_user.role == 'student':
-                student = db.get_student(f"user_id = {current_user.user_id}")
-                if student and student.student_id == appointment.student_id:
-                    has_permission = True
-            elif current_user.role == 'teacher':
-                teacher = db.get_teacher(f"user_id = {current_user.user_id}")
-                if teacher and teacher.teacher_id == appointment.teacher_id:
-                    has_permission = True
-    
+    elif report.generated_by == current_user.user_id:
+        # User can view if they created the report
+        has_permission = True
+
     if not has_permission:
         flash("You don't have permission to view this report", "danger")
         return redirect(url_for('report.view'))
-    
-    # Get the related appointment, student, and teacher info
+
     appointment = db.get_appointment(f"appointment_id = {report.appointment_id}")
     appointment_details = db.get_appointments_with_details(f"a.appointment_id = {report.appointment_id}")
     
-    if appointment_details:
-        appointment_detail = appointment_details[0]
-    else:
-        appointment_detail = None
-    
-    # Create form for updating report
+    appointment_detail = appointment_details[0] if appointment_details else None
     form = ReportForm(obj=report)
     
     return render_template(
@@ -91,6 +56,7 @@ def report(report_id):
         appointment_detail=appointment_detail,
         form=form
     )
+
 
 @reportBlueprint.route("/appointment/<int:appointment_id>/report/create", methods=["GET", "POST"])
 @login_required
@@ -141,7 +107,7 @@ def create(appointment_id):
             form.teacher_response.data if current_user.role == 'teacher' else None
         )
         report_id = db.add_report(new_report)
-        pdb.set_trace()
+
         if report_id:
             flash("Report created successfully!", "success")
             return redirect(url_for('report.report', report_id=report_id))
@@ -165,30 +131,20 @@ def update(report_id):
     if not report:
         flash("Report not found", "danger")
         return redirect(url_for('report.view'))
-    
+
     # Check permissions
     has_permission = False
-    
+
     if current_user.role in ['admin_appoint', 'superuser']:
         has_permission = True
-    else:
-        # Get the appointment related to this report
-        appointment = db.get_appointment(f"appointment_id = {report.appointment_id}")
-        
-        if appointment:
-            if current_user.role == 'student':
-                student = db.get_student(f"user_id = {current_user.user_id}")
-                if student and student.student_id == appointment.student_id:
-                    has_permission = True
-            elif current_user.role == 'teacher':
-                teacher = db.get_teacher(f"user_id = {current_user.user_id}")
-                if teacher and teacher.teacher_id == appointment.teacher_id:
-                    has_permission = True
-    
+    elif report.generated_by == current_user.user_id:
+        # Allow update if user created the report
+        has_permission = True
+
     if not has_permission:
         flash("You don't have permission to update this report", "danger")
         return redirect(url_for('report.view'))
-    
+
     form = ReportForm()
     
     if form.validate_on_submit():
@@ -212,6 +168,7 @@ def update(report_id):
             flash("Failed to update report", "danger")
     
     return redirect(url_for('report.report', report_id=report_id))
+
 
 @reportBlueprint.route("/report/<int:report_id>/delete", methods=["POST"])
 @login_required
