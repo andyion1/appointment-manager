@@ -999,7 +999,147 @@ footer {
   min-width: 200px;
 }
 
-/* ===== RESPONSIVE ADJUSTMENTS ===== */
+/* ===== TEACHER PROFILE ===== */
+.teacher-profile-container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.teacher-profile-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.teacher-header-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.teacher-header-content h2 {
+  margin: 0;
+  font-size: 1.8rem;
+}
+
+.teacher-header-actions .back-button {
+  display: inline-flex;
+  align-items: center;
+  color: #6c757d;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.teacher-header-actions .back-button:hover {
+  color: #3498db;
+  text-decoration: none;
+}
+
+.teacher-header-actions .back-button i {
+  margin-right: 0.5rem;
+}
+
+.teacher-profile-card {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  margin-bottom: 2rem;
+}
+
+.teacher-profile-section {
+  padding: 1.5rem;
+  border-bottom: 1px solid #eee;
+}
+
+.teacher-profile-section:last-of-type {
+  border-bottom: none;
+}
+
+.teacher-profile-section h3 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+  color: #2c3e50;
+  display: flex;
+  align-items: center;
+}
+
+.teacher-profile-section h3 i {
+  margin-right: 0.75rem;
+  color: #3498db;
+}
+
+.teacher-info-value {
+  font-size: 1.1rem;
+  color: #2c3e50;
+  padding: 0.5rem 0.75rem;
+  background-color: #f8f9fa;
+  border-radius: 6px;
+  border-left: 4px solid #3498db;
+}
+
+.teacher-profile-actions {
+  padding: 1.5rem;
+  background-color: #f8f9fa;
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+
+.teacher-admin-section {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.teacher-admin-section h3 {
+  margin-top: 0;
+  margin-bottom: 1.25rem;
+  font-size: 1.2rem;
+  color: #2c3e50;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 0.75rem;
+}
+
+.teacher-admin-section h3 i {
+  margin-right: 0.75rem;
+  color: #e74c3c;
+}
+
+.admin-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+@media (max-width: 768px) {
+  .teacher-profile-actions {
+    flex-direction: column;
+  }
+  
+  .teacher-profile-actions .submit-button {
+    width: 100%;
+    text-align: center;
+  }
+  
+  .admin-actions {
+    flex-direction: column;
+  }
+  
+  .admin-actions button,
+  .admin-actions a {
+    width: 100%;
+    text-align: center;
+  }
+}
 @media (max-width: 992px) {
   .page-container {
     flex-direction: column;
