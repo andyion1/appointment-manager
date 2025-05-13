@@ -180,31 +180,6 @@ def manage_reports():
     reports = [Report(*r) for r in raw]
     return render_template("manage_reports.html", reports=reports, logo="static/images/logo.PNG", css="static/css/style.css")
 
-@adminBlueprint.route('/reports/<int:report_id>/edit', methods=['GET', 'POST'])
-@login_required
-def edit_report(report_id):
-    if current_user.role not in ['admin_appoint', 'admin_super']:
-        flash("Access denied", "danger")
-        return redirect(url_for('main.index'))
-
-    report = db.get_reports(f"report_id = {report_id}")
-    if not report:
-        flash("Report not found.", "danger")
-        return redirect(url_for('admin.manage_reports'))
-
-    report_obj = report[0]
-
-    if request.method == 'POST':
-        content = request.form.get("content")
-        db.update_report(report_id, content)
-
-        db.log_admin_action(current_user.user_id, f"updated report #{report_id}", report_obj.author_id)
-
-        flash("Report updated.", "success")
-        return redirect(url_for('admin.manage_reports'))
-
-    return render_template("report_edit.html", report=report_obj)
-
 @adminBlueprint.route('/reports/<int:report_id>/delete', methods=['POST'])
 @login_required
 def delete_report(report_id):
@@ -212,18 +187,17 @@ def delete_report(report_id):
         flash("Access denied", "danger")
         return redirect(url_for('main.index'))
 
-    report = db.get_reports(f"report_id = {report_id}")
+    report = db.get_report_with_details(f"report_id = {report_id}")
     if not report:
-        flash("Report not found.", "danger")
+        flash("Report not found", "danger")
         return redirect(url_for('admin.manage_reports'))
 
-    author_id = report[0].author_id
-
     db.delete_report(report_id)
-    db.log_admin_action(current_user.user_id, f"deleted report #{report_id}", author_id)
+    db.log_admin_action(current_user.user_id, f"deleted report #{report_id}", report.generated_by)
 
     flash("Report deleted.", "info")
     return redirect(url_for('admin.manage_reports'))
+
 
 
 @adminBlueprint.route("/admin/create", methods=["GET", "POST"])

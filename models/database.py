@@ -457,10 +457,6 @@ class Database:
             except Exception as e:
                 print("get_reports_with_details error:", e)
                 return []
-
-
-
-
                 
     def get_report_with_details(self, cond):
         '''Returns a single Report object with student and teacher full names'''
@@ -503,9 +499,6 @@ class Database:
                 print(f"get_report_with_details error: {e}")
                 return None
 
-
-
-
     def add_report(self, report):
         '''Add a report to the database'''
         qry = """
@@ -527,18 +520,6 @@ class Database:
             except Exception as e:
                 print("add_report error:", e)
                 return None
-            
-    def update_report(self, report_id, new_content):
-        qry = """
-            UPDATE report
-            SET content = %s, updated_at = CURRENT_TIMESTAMP
-            WHERE report_id = %s
-        """
-        with self.get_cursor() as curr:
-            try:
-                curr.execute(qry, (new_content, report_id))
-            except Exception as e:
-                print(f"Failed to update report {report_id}: {e}")
 
     def delete_report(self, report_id):
         qry = """
@@ -576,30 +557,51 @@ class Database:
             curr.execute(qry)
             return curr.fetchall()
 
-
-
-            
     def update_report(self, report_id, updates):
-        '''Update a report in the database'''
-        qry = """
+        '''Update a report in the database with dynamic fields'''
+        if not updates:
+            return False
+
+        set_clauses = []
+        values = []
+
+        for key, value in updates.items():
+            set_clauses.append(f"{key} = %s")
+            values.append(value)
+
+        qry = f"""
             UPDATE REPORT
-            SET feedback = %s,
-                teacher_response = %s
+            SET {', '.join(set_clauses)}
             WHERE report_id = %s
         """
+        values.append(report_id)
+
         with self.get_cursor() as curr:
             try:
-                curr.execute(qry, (
-                    updates.get('feedback'),
-                    updates.get('teacher_response'),
-                    report_id
-                ))
+                curr.execute(qry, values)
                 return curr.rowcount > 0
             except Exception as e:
                 print("update_report error:", e)
                 return False
 
 
+    def get_teacher_by_user_name(self, username):
+        query = """
+        SELECT t.teacher_id, u.full_name
+        FROM TEACHER t
+        JOIN USER_PROJ u ON t.user_id = u.user_id
+        WHERE u.username = %s
+        """
+        with self.get_cursor() as curr:
+            curr.execute(query, (username,))
+            row = curr.fetchone()
+            if row:
+                class TeacherObj:
+                    def __init__(self, teacher_id, full_name):
+                        self.teacher_id = teacher_id
+                        self.full_name = full_name
+                return TeacherObj(*row)
+            return None
 
 # ===========================================================================
 db = Database()
