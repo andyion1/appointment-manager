@@ -8,17 +8,19 @@ def index():
 
 @main.route("/home")
 def home():
-    appointments = db.get_appointments_with_details()
     status_filter = request.args.get('status', 'all')
-    
-    # Get appointments filtered by status and user role
+
+    # Safely get user_id and role only if logged in
+    user_id = current_user.user_id if current_user.is_authenticated else None
+    user_role = current_user.role if current_user.is_authenticated else None
+
+    # Pass those values to your DB call (handle None in your DB function accordingly)
     appointments = db.get_appointments_by_status(
         status=status_filter if status_filter != 'all' else None,
-        user_id=current_user.user_id,
-        user_role=current_user.role
+        user_id=user_id,
+        user_role=user_role
     )
-    
-    # Define available status options for the filter
+
     status_options = [
         {'value': 'all', 'label': 'All'},
         {'value': 'pending', 'label': 'Pending'},
@@ -26,8 +28,16 @@ def home():
         {'value': 'completed', 'label': 'Completed'},
         {'value': 'cancelled', 'label': 'Cancelled'}
     ]
-    return render_template("home.html", logo="static/images/logo.PNG", status_filter=status_filter,
-        status_options=status_options, css="static/css/style.css",appointments=appointments)
+
+    return render_template(
+        "home.html",
+        logo="static/images/logo.PNG",
+        status_filter=status_filter,
+        status_options=status_options,
+        css="static/css/style.css",
+        appointments=appointments
+    )
+
 
 @main.route("/about")
 def about():
