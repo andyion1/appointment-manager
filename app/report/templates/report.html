@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}Report Details{% endblock %}
+
+{% block content %}
+<div class="report-details">
+    <h2>Report #{{ report.report_id }}</h2>
+    
+    <div class="appointment-info">
+        <h3>Appointment Information</h3>
+        {% if appointment_detail %}
+        <p><strong>Date:</strong> {{ appointment.appointment_date }}</p>
+        <p><strong>Time:</strong> {{ appointment.appointment_time }}</p>
+        <p><strong>Student:</strong> {{ appointment.student_name }}</p>
+        <p><strong>Teacher:</strong> {{ appointment.teacher_name }}</p>
+        <p><strong>Status:</strong> {{ appointment.status }}</p>
+        {% endif %}
+    </div>
+
+    
+    <div class="student-feedback">
+        <h3>Student Feedback</h3>
+        <div class="content-box">
+            {% if report.feedback %}
+                {{ report.feedback }}
+            {% else %}
+                <em>No feedback provided yet.</em>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="teacher-response">
+        <h3>Teacher Response</h3>
+        <div class="content-box">
+            {% if report.teacher_response %}
+                {{ report.teacher_response }}
+            {% else %}
+                <em>No response provided yet.</em>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="report-update">
+        <h3>Update Report</h3>
+        <form method="POST" action="{{ url_for('report.update', report_id=report.report_id) }}">
+            {{ form.hidden_tag() }}
+            
+            {% if current_user.role == 'student' or current_user.role in ['admin_appoint', 'superuser'] %}
+            <div class="form-section">
+                {{ form.feedback.label(class="form-label") }}
+                {{ form.feedback(class="form-control", rows=3) }}
+                {% if form.feedback.errors %}
+                    <ul class="errors">
+                        {% for error in form.feedback.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+            {% endif %}
+            
+            {% if current_user.role == 'teacher' or current_user.role in ['admin_appoint', 'superuser'] %}
+            <div class="form-section">
+                {{ form.teacher_response.label(class="form-label") }}
+                {{ form.teacher_response(class="form-control", rows=3) }}
+                {% if form.teacher_response.errors %}
+                    <ul class="errors">
+                        {% for error in form.teacher_response.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+            {% endif %}
+            
+            <div class="form-section">
+                {{ form.submit(class="submit-button primary-button") }}
+            </div>
+        </form>
+    </div>
+    
+    {% if current_user.role in ['admin_appoint', 'superuser'] %}
+    <div class="report-delete">
+        <form method="POST" action="{{ url_for('report.delete', report_id=report.report_id) }}" 
+              onsubmit="return confirm('Are you sure you want to delete this report?');">
+            <button type="submit" class="delete-button">Delete Report</button>
+        </form>
+    </div>
+    {% endif %}
+    
+    <div class="back-link">
+        <a href="{{ url_for('report.view') }}">Back to Reports</a>
+    </div>
+</div>
+{% endblock %}

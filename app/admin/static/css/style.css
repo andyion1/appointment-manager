@@ -1,0 +1,52 @@
+/* General layout */
+.container {
+    max-width: 1100px;
+    margin: 40px auto;
+    padding: 20px;
+}
+
+/* Headings */
+h2 {
+    font-size: 2rem;
+    font-weight: 600;
+}
+
+p.text-muted {
+    font-size: 0.95rem;
+    color: #6c757d;
+}
+
+/* Table formatting */
+.table th, .table td {
+    vertical-align: middle;
+    font-size: 0.95rem;
+    padding: 12px;
+}
+
+.table th {
+    background-color: #343a40;
+    color: white;
+}
+
+.table tbody tr:hover {
+    background-color: #f1f1f1;
+}
+
+/* Badge for status */
+.badge.bg-info {
+    font-size: 0.85rem;
+    padding: 6px 12px;
+    border-radius: 20px;
+}
+
+/* Button */
+.btn.btn-sm.btn-primary {
+    padding: 5px 10px;
+    font-size: 0.85rem;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.btn.btn-sm.btn-primary:hover {
+    background-color: #0056b3;
+    color: white;
+}

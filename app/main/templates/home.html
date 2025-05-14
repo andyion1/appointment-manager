@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Office Hour Scheduler{% endblock %}
+
+{% block content %}
+<h1>Office Hour Scheduler</h1>
+<h2>Welcome to your appointment scheduling platform</h2>
+
+{% if not current_user.is_authenticated %}
+<div class="appointment-info">
+    <h3>Quick and Easy Appointment Scheduling</h3>
+    <p>Connect with teachers and schedule office hours with just a few clicks.</p>
+    <div class="action-buttons">
+        <a href="{{ url_for('user.login') }}" class="submit-button primary-button">Login</a>
+        <a href="{{ url_for('user.register') }}" class="submit-button secondary-button">Register</a>
+    </div>
+</div>
+{% else %}
+<div class="appointment-info">
+    <h3>Welcome back, {{ current_user.full_name }}!</h3>
+    <p>What would you like to do today?</p>
+    <div class="action-buttons">
+        <a href="{{ url_for('appointment.form') }}" class="submit-button primary-button">Book Appointment</a>
+        <a href="{{ url_for('appointment.appointments') }}" class="submit-button secondary-button">My Appointments</a>
+    </div>
+</div>
+{% endif %}
+<h2>Appointments</h2>
+
+{% if current_user.is_authenticated %}
+<div class="action-buttons">
+    <a href="{{ url_for('appointment.form') }}" class="submit-button primary-button">Book New Appointment</a>
+</div>
+{% endif %}
+{% if status_options %}
+    <div class="action-buttons">
+        {% for option in status_options %}
+        <a href="{{ url_for('appointment.appointments', status=option.value) }}" 
+           class="{% if status_filter == option.value %}primary-button{% else %}secondary-button{% endif %} submit-button">
+            {{ option.label }}
+        </a>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="no-appointments">
+        <p>No appointments found with the selected filter.</p>
+        <p>{% if status_filter == 'all' %}Click "Book New Appointment" to schedule your first meeting!{% else %}Try selecting a different filter or booking a new appointment.{% endif %}</p>
+    </div>
+{% endif %}
+
+{% if appointments %}
+<div class="appointments-grid">
+    {% for appointment in appointments %}
+    <div class="appointment-card">
+        <div class="appointment-card-header">
+            <h3>Appointment #{{ appointment.appointment_id }}</h3>
+            <span class="status-badge {{ appointment.status }}">{{ appointment.status }}</span>
+        </div>
+        <div class="appointment-card-content">
+            <div class="appointment-card-detail">
+                <span class="detail-label">Date:</span>
+                <span class="detail-value">{{ appointment.appointment_date }}</span>
+            </div>
+            <div class="appointment-card-detail">
+                <span class="detail-label">Time:</span>
+                <span class="detail-value">{{ appointment.appointment_time }}</span>
+            </div>
+            <div class="appointment-card-detail">
+                <span class="detail-label">Student:</span>
+                <span class="detail-value">{{ appointment.student_name }}</span>
+            </div>
+            <div class="appointment-card-detail">
+                <span class="detail-label">Teacher:</span>
+                <span class="detail-value">{{ appointment.teacher_name }}</span>
+            </div>            
+            <div class="appointment-card-detail appointment-card-reason">
+                <span class="detail-label">Reason:</span>
+                <span class="detail-value">{{ appointment.reason }}</span>
+            </div>
+        </div>
+        {% if current_user.is_authenticated %}
+        <div class="appointment-card-footer">
+            <a href="{{ url_for('appointment.appointment', appointment_id=appointment.appointment_id) }}" class="button-link">View Details</a>
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="no-appointments">
+    <p>No appointments found.</p>
+    <p>Click "Book New Appointment" to schedule your first meeting!</p>
+</div>
+{% endif %}
+<div class="stats-grid">
+    <div class="stat-card">
+        <h3>Easy Booking</h3>
+        <p><i class="fas fa-calendar-plus"></i></p>
+        <div>Schedule meetings with your teachers at convenient times</div>
+    </div>
+    
+    <div class="stat-card">
+        <h3>Track Status</h3>
+        <p><i class="fas fa-tasks"></i></p>
+        <div>Monitor the status of your appointments in real-time</div>
+    </div>
+    
+    <div class="stat-card">
+        <h3>Get Feedback</h3>
+        <p><i class="fas fa-comment-alt"></i></p>
+        <div>Receive feedback and share insights after meetings</div>
+    </div>
+</div>
+
+{% if current_user.is_authenticated %}
+<div class="appointment-info">
+    <h3>Quick Actions</h3>
+    <div class="stats-grid">
+        <a href="{{ url_for('user.profile') }}" class="stat-card">
+            <h3>Profile</h3>
+            <p><i class="fas fa-id-card"></i></p>
+        </a>
+        
+        <a href="{{ url_for('appointment.appointments') }}" class="stat-card">
+            <h3>Appointments</h3>
+            <p><i class="fas fa-calendar-alt"></i></p>
+        </a>
+        
+        <a href="{{ url_for('report.view') }}" class="stat-card">
+            <h3>Reports</h3>
+            <p><i class="fas fa-file-alt"></i></p>
+        </a>
+        
+        {% if current_user.role == 'student' %}
+        <a href="{{ url_for('teacher.teachers') }}" class="stat-card">
+            <h3>Teachers</h3>
+            <p><i class="fas fa-chalkboard-teacher"></i></p>
+        </a>
+        {% endif %}
+        
+        {% if current_user.role in ['admin_user', 'admin_appoint', 'admin_super'] %}
+        <a href="{{ url_for('admin.dashboard') }}" class="stat-card">
+            <h3>Admin Dashboard</h3>
+            <p><i class="fas fa-tachometer-alt"></i></p>
+        </a>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}

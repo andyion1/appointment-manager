@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Create Report{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <h2>Create Report for Appointment</h2>
+    
+    <div class="appointment-info">
+        <h3>Appointment Information</h3>
+        {% if appointment_detail %}
+        <p><strong>Date:</strong> {{ appointment.appointment_date }}</p>
+        <p><strong>Time:</strong> {{ appointment.appointment_time }}</p>
+        <p><strong>Student:</strong> {{ appointment_detail.student_name }}</p>
+        <p><strong>Teacher:</strong> {{ appointment_detail.teacher_name }}</p>
+        <p><strong>Status:</strong> {{ appointment.status }}</p>
+        {% endif %}
+    </div>
+
+    
+    <form method="POST" action="{{ url_for('report.create', appointment_id=appointment.appointment_id) }}">
+        {{ form.hidden_tag() }}
+    
+        
+        {% if current_user.role == 'student' %}
+        <div class="form-section">
+            {{ form.feedback.label(class="form-label") }}
+            {{ form.feedback(class="form-control", rows=3) }}
+            {% if form.feedback.errors %}
+                <ul class="errors">
+                    {% for error in form.feedback.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+        {% endif %}
+        
+        {% if current_user.role == 'teacher' %}
+        <div class="form-section">
+            {{ form.teacher_response.label(class="form-label") }}
+            {{ form.teacher_response(class="form-control", rows=3) }}
+            {% if form.teacher_response.errors %}
+                <ul class="errors">
+                    {% for error in form.teacher_response.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+        {% endif %}
+        
+        <div class="form-section">
+            {{ form.submit(class="submit-button primary-button") }}
+        </div>
+    </form>
+    
+    <div class="back-link">
+        <a href="{{ url_for('appointment.appointment', appointment_id=appointment.appointment_id) }}">Back to Appointment</a>
+    </div>
+</div>
+{% endblock %}
