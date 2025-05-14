@@ -70,9 +70,7 @@ def appointment(appointment_id):
     ('completed', 'Completed'),
     ('cancelled', 'Cancelled')
     ]
-    print('!!!!!!!!!!!!!!!!!!!!!!2')
     if appointment.created_role == current_user.role:
-        print('!!!!!!!!!!!!!!!!!!!!!!1')
         base_status_choices = [choice for choice in base_status_choices if choice[0] != 'approved']
 
     form.status.choices = base_status_choices
