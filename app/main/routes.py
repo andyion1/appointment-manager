@@ -16,11 +16,7 @@ def home():
     user_role = current_user.role if current_user.is_authenticated else None
 
     # Pass those values to your DB call (handle None in your DB function accordingly)
-    appointments = db.get_appointments_by_status(
-        status=status_filter if status_filter != 'all' else None,
-        user_id=user_id,
-        user_role=user_role
-    )
+    appointments = db.get_appointments_by_status(status=status_filter if status_filter != 'all' else None)
     status_options = [
         {'value': 'all', 'label': 'All'},
         {'value': 'pending', 'label': 'Pending'},
