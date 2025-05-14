@@ -32,7 +32,21 @@
     <a href="{{ url_for('appointment.form') }}" class="submit-button primary-button">Book New Appointment</a>
 </div>
 {% endif %}
-
+{% if status_options %}
+    <div class="action-buttons">
+        {% for option in status_options %}
+        <a href="{{ url_for('appointment.appointments', status=option.value) }}" 
+           class="{% if status_filter == option.value %}primary-button{% else %}secondary-button{% endif %} submit-button">
+            {{ option.label }}
+        </a>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="no-appointments">
+        <p>No appointments found with the selected filter.</p>
+        <p>{% if status_filter == 'all' %}Click "Book New Appointment" to schedule your first meeting!{% else %}Try selecting a different filter or booking a new appointment.{% endif %}</p>
+    </div>
+{% endif %}
 
 {% if appointments %}
 <div class="appointments-grid">

@@ -278,7 +278,7 @@ class Database:
         """
         base_query = """
             SELECT a.appointment_id, a.student_id, a.teacher_id, 
-                a.appointment_date, a.appointment_time, a.status, a.reason, a.created_at,
+                a.appointment_date, a.appointment_time, a.status, a.reason, a.created_at, created_role,
                 su.full_name as student_name, tu.full_name as teacher_name
             FROM APPOINTMENT a
             JOIN STUDENT s ON a.student_id = s.student_id
@@ -316,9 +316,9 @@ class Database:
                 from models.data_classes import Appointment
                 appointments = []
                 for row in rows:
-                    appt = Appointment(*row[:8])  # first 8 fields = expected constructor args
-                    appt.student_name = row[8]
-                    appt.teacher_name = row[9]
+                    appt = Appointment(*row[:9])  # first 8 fields = expected constructor args
+                    appt.student_name = row[9]
+                    appt.teacher_name = row[10]
                     appointments.append(appt)
                 
                 return appointments
