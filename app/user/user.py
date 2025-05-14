@@ -3,6 +3,7 @@ from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from models.database import db
 from datetime import datetime
+from models.utils import save_file
 import pdb
 
 class User(UserMixin):
@@ -38,7 +39,9 @@ class User(UserMixin):
         
         # Create new user with hashed password
         hashed_password = generate_password_hash(password)
-        user = User(0, username, hashed_password, email, full_name, role)
+
+        
+        user = User(0, username, hashed_password, email, full_name, role, "default_pic.jpg")
         
         # Add user to database
         db.add_user(user)

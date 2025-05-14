@@ -11,10 +11,6 @@ def index():
 def home():
     status_filter = request.args.get('status', 'all')
 
-    # Safely get user_id and role only if logged in
-    user_id = current_user.user_id if current_user.is_authenticated else None
-    user_role = current_user.role if current_user.is_authenticated else None
-
     # Pass those values to your DB call (handle None in your DB function accordingly)
     appointments = db.get_appointments_by_status(status=status_filter if status_filter != 'all' else None)
     status_options = [
@@ -23,7 +19,7 @@ def home():
         {'value': 'approved', 'label': 'Approved'},
         {'value': 'completed', 'label': 'Completed'},
         {'value': 'cancelled', 'label': 'Cancelled'}
-    ]
+        ]
 
     return render_template(
         "home.html",

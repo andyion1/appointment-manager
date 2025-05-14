@@ -132,6 +132,22 @@ class Database:
             except Exception as e:
                 print("update_user error:", e)
 
+    def update_user_password(self, user_id, new_hashed_password):
+        """Update the hashed password of a user"""
+        qry = """
+            UPDATE USER_PROJ
+            SET password_hash = %s
+            WHERE user_id = %s
+        """
+        with self.get_cursor() as curr:
+            try:
+                curr.execute(qry, (new_hashed_password, user_id))
+                return curr.rowcount > 0
+            except Exception as e:
+                print("update_user_password error:", e)
+                return False
+
+
     def delete_user(self, user_id):
         qry = "DELETE FROM USER_PROJ WHERE user_id = %s"
         with self.get_cursor() as curr:

@@ -8,7 +8,7 @@
       {% if current_user.user_image %}
         <img src="{{ url_for('static', filename='images/user-pics/' ~ current_user.user_image) }}" alt="Profile Picture" id="profile-pic">
       {% else %}
-        <img src="{{ url_for('static', filename='images/default-avatar.png') }}" alt="Default Avatar" id="profile-pic">
+        <img src="{{ url_for('static', filename='images/default_pic.jpg') }}" alt="Default Avatar" id="profile-pic">
       {% endif %}
     </div>
     <div class="profile-info">

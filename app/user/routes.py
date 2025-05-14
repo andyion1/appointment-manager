@@ -129,12 +129,11 @@ def profile():
 
     # Default image path (for displaying if needed)
     user_image = current_user.user_image  # Assumes this field exists on User
-
     if form.validate_on_submit():
         # Check if a new image was uploaded
         if form.user_image.data:
             # Save image and get new filename
-            new_file_name = save_file(form.user_image.data)  # You must define save_file()
+            new_file_name = save_file(form.user_image.data)  # You must define save_file()  
             user_image = new_file_name  # Update the image path
 
         # Update user info in the DB
@@ -146,7 +145,6 @@ def profile():
 
         flash(f"Profile updated successfully!", 'success')
         return redirect(url_for('user.profile'))
-
     return render_template('profile.html', form=form)
 
 
