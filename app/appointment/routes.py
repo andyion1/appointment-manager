@@ -9,32 +9,36 @@ from app.user.user import Teacher, Student
 
 appointmentBlueprint = Blueprint("appointment", __name__, template_folder='templates')
 
+# Update this in your app/appointment/routes.py file
+
 @appointmentBlueprint.route("/appointments")
 @login_required
 def appointments():
-    # Get appointments based on user role
-    if current_user.role == 'student':
-        student = Student.get_student_by_user_name(current_user.username)
-        if student:
-            appointments = db.get_appointments(f"student_id = {student.student_id}")
-        else:
-            appointments = []
-            
-    elif current_user.role == 'teacher':
-        teacher = Teacher.get_teacher_by_user_name(current_user.username)
-        if teacher:
-            appointments = db.get_appointments(f"teacher_id = {teacher.teacher_id}")
-        else:
-            appointments = []
-            
-    elif current_user.role in ['admin_appoint', 'admin_super']:
-        # Admins can see all appointments
-        appointments = db.get_appointments()
-        
-    else:
-        appointments = []
+    # Get filter parameter from query string, default to 'all'
+    status_filter = request.args.get('status', 'all')
     
-    return render_template("appointments.html", appointments=appointments)
+    # Get appointments filtered by status and user role
+    appointments = db.get_appointments_by_status(
+        status=status_filter if status_filter != 'all' else None,
+        user_id=current_user.user_id,
+        user_role=current_user.role
+    )
+    
+    # Define available status options for the filter
+    status_options = [
+        {'value': 'all', 'label': 'All'},
+        {'value': 'pending', 'label': 'Pending'},
+        {'value': 'approved', 'label': 'Approved'},
+        {'value': 'completed', 'label': 'Completed'},
+        {'value': 'cancelled', 'label': 'Cancelled'}
+    ]
+
+    return render_template(
+        "appointments.html", 
+        appointments=appointments, 
+        status_filter=status_filter,
+        status_options=status_options
+    )
 
 ################################################################################################ HERE!!
 @appointmentBlueprint.route("/appointment/<int:appointment_id>")

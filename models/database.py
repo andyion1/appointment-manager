@@ -266,6 +266,65 @@ class Database:
             except Exception as e:
                 print(f"get_appointment error: {e}")
                 return None
+            
+    def get_appointments_by_status(self, status=None, user_id=None, user_role=None):
+        """
+        Get appointments filtered by status and user role
+        
+        :param status: Filter by appointment status (completed, pending, approved, cancelled, or None for all)
+        :param user_id: The current user's ID
+        :param user_role: The current user's role (student, teacher, admin)
+        :return: List of appointments
+        """
+        base_query = """
+            SELECT a.appointment_id, a.student_id, a.teacher_id, 
+                a.appointment_date, a.appointment_time, a.status, a.reason, a.created_at,
+                su.full_name as student_name, tu.full_name as teacher_name
+            FROM APPOINTMENT a
+            JOIN STUDENT s ON a.student_id = s.student_id
+            JOIN TEACHER t ON a.teacher_id = t.teacher_id
+            JOIN USER_PROJ su ON s.user_id = su.user_id
+            JOIN USER_PROJ tu ON t.user_id = tu.user_id
+            WHERE 1=1
+        """
+        
+        params = []
+        
+        # Add status filter if provided
+        if status and status != 'all':
+            base_query += " AND a.status = %s"
+            params.append(status)
+        
+        # Add user-specific filters based on role
+        if user_id and user_role:
+            if user_role == 'student':
+                base_query += " AND su.user_id = %s"
+                params.append(user_id)
+            elif user_role == 'teacher':
+                base_query += " AND tu.user_id = %s"
+                params.append(user_id)
+            # No additional filter for admin - they see all appointments
+        
+        # Order by date/time
+        base_query += " ORDER BY a.appointment_date DESC, a.appointment_time ASC"
+        
+        with self.get_cursor() as curr:
+            try:
+                curr.execute(base_query, params)
+                rows = curr.fetchall()
+                
+                from models.data_classes import Appointment
+                appointments = []
+                for row in rows:
+                    appt = Appointment(*row[:8])  # first 8 fields = expected constructor args
+                    appt.student_name = row[8]
+                    appt.teacher_name = row[9]
+                    appointments.append(appt)
+                
+                return appointments
+            except Exception as e:
+                print("get_appointments_by_status error:", e)
+                return []
 
     
     def add_appointment(self, appointment):
