@@ -9,6 +9,8 @@ from app.user.user import Teacher, Student
 
 appointmentBlueprint = Blueprint("appointment", __name__, template_folder='templates')
 
+# Update this in your app/appointment/routes.py file
+
 @appointmentBlueprint.route("/appointments")
 @login_required
 def appointments():
@@ -33,8 +35,31 @@ def appointments():
         
     else:
         appointments = []
+    # Get filter parameter from query string, default to 'all'
+    status_filter = request.args.get('status', 'all')
     
-    return render_template("appointments.html", appointments=appointments)
+    # Get appointments filtered by status and user role
+    appointments = db.get_appointments_by_status(
+        status=status_filter if status_filter != 'all' else None,
+        user_id=current_user.user_id,
+        user_role=current_user.role
+    )
+    
+    # Define available status options for the filter
+    status_options = [
+        {'value': 'all', 'label': 'All'},
+        {'value': 'pending', 'label': 'Pending'},
+        {'value': 'approved', 'label': 'Approved'},
+        {'value': 'completed', 'label': 'Completed'},
+        {'value': 'cancelled', 'label': 'Cancelled'}
+    ]
+
+    return render_template(
+        "appointments.html", 
+        appointments=appointments, 
+        status_filter=status_filter,
+        status_options=status_options
+    )
 
 ################################################################################################ HERE!!
 @appointmentBlueprint.route("/appointment/<int:appointment_id>", methods=["GET", "POST"])
