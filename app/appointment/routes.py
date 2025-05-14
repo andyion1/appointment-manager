@@ -1,4 +1,5 @@
 from datetime import datetime
+from math import ceil
 from flask import render_template, redirect, url_for, Blueprint, flash, request
 from app.appointment.forms import AppointmentForm, AppointmentStatusForm, AppointmentUpdateForm
 from flask_login import current_user, login_required
@@ -15,6 +16,8 @@ appointmentBlueprint = Blueprint("appointment", __name__, template_folder='templ
 @login_required
 def appointments():
     # Get appointments based on user role
+    page = int(request.args.get('page', 1))
+    per_page = 4 
     if current_user.role == 'student':
         student = Student.get_student_by_user_name(current_user.username)
         if student:
@@ -54,11 +57,17 @@ def appointments():
         {'value': 'cancelled', 'label': 'Cancelled'}
     ]
 
+    total_pages = ceil(len(appointments) / per_page)
+    start = (page - 1) * per_page
+    end = start + per_page
+    appointments_paginated = appointments[start:end]
+
     return render_template(
         "appointments.html", 
-        appointments=appointments, 
+        appointments=appointments_paginated, 
         status_filter=status_filter,
-        status_options=status_options
+        status_options=status_options,
+        total_pages=total_pages
     )
 
 ################################################################################################ HERE!!
