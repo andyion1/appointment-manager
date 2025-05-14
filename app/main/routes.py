@@ -1,12 +1,14 @@
 from flask import render_template, redirect, url_for, Blueprint
 main = Blueprint("main", __name__, template_folder='templates')
+from models.database import db
 @main.route("/")
 def index():
     return redirect(url_for("main.home"))
 
 @main.route("/home")
 def home():
-    return render_template("home.html", logo="static/images/logo.PNG", css="static/css/style.css")
+    appointments = db.get_appointments_with_details()
+    return render_template("home.html", logo="static/images/logo.PNG", css="static/css/style.css",appointments=appointments)
 
 @main.route("/about")
 def about():

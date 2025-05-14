@@ -248,7 +248,7 @@ class Database:
                 a.appointment_date, a.status, a.created_at, 
                 a.appointment_time, a.reason,
                 su.full_name AS student_name, 
-                tu.full_name AS teacher_name
+                tu.full_name AS teacher_name, created_role
             FROM appointment a
             JOIN student s ON a.student_id = s.student_id
             JOIN teacher t ON a.teacher_id = t.teacher_id
@@ -271,8 +271,8 @@ class Database:
     def add_appointment(self, appointment):
         '''Add an appointment to the database'''
         qry = """
-            INSERT INTO APPOINTMENT (student_id, teacher_id, appointment_date, status, created_at, appointment_time, reason)
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            INSERT INTO APPOINTMENT (student_id, teacher_id, appointment_date, status, created_at, appointment_time, reason, created_role)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING appointment_id
         """
         with self.get_cursor() as curr:
@@ -284,7 +284,8 @@ class Database:
                     appointment.status, 
                     appointment.created_at, 
                     appointment.appointment_time, 
-                    appointment.reason
+                    appointment.reason, 
+                    appointment.created_role
                 ))
                 appointment_id = curr.fetchone()[0]
                 return appointment_id
@@ -306,7 +307,7 @@ class Database:
                 data = curr.fetchall()
                 appointments = []
                 for appointment in data:
-                    appointments.append(Appointment(appointment[0], appointment[1], appointment[2], appointment[3], appointment[6], appointment[4], appointment[7], appointment[5]))
+                    appointments.append(Appointment(appointment[0], appointment[1], appointment[2], appointment[3], appointment[6], appointment[4], appointment[7], appointment[5],appointment[8]))
                 return appointments if data else []
             except Exception as e:
                 print("get_appointments error:", e)
@@ -316,7 +317,7 @@ class Database:
     def get_appointments_with_details(self, cond=None):
         qry = """
             SELECT a.appointment_id, a.student_id, a.teacher_id, a.appointment_date,
-                a.appointment_time, a.status, a.reason, a.created_at,
+                a.appointment_time, a.status, a.reason, a.created_at, created_role,
                 su.full_name as student_name, tu.full_name as teacher_name
             FROM APPOINTMENT a
             JOIN STUDENT s ON a.student_id = s.student_id
@@ -334,9 +335,9 @@ class Database:
                 rows = curr.fetchall()
                 appointments = []
                 for row in rows:
-                    appt = Appointment(*row[:8])  # first 8 fields = expected constructor args
-                    appt.student_name = row[8]
-                    appt.teacher_name = row[9]
+                    appt = Appointment(*row[:9])  # first 8 fields = expected constructor args
+                    appt.student_name = row[9]
+                    appt.teacher_name = row[10]
                     appointments.append(appt)
                 return appointments
             except Exception as e:
@@ -349,7 +350,7 @@ class Database:
         qry = f"""
             SELECT a.appointment_id, a.student_id, a.teacher_id, 
                 a.appointment_date, a.appointment_time, a.status, 
-                a.reason, a.created_at,
+                a.reason, a.created_at, created_role,
                 su.full_name as student_name, 
                 tu.full_name as teacher_name
             FROM APPOINTMENT a
@@ -365,10 +366,10 @@ class Database:
                 row = curr.fetchone()
                 if row:
                     # first 8 values go into constructor
-                    appointment = Appointment(*row[:8])
+                    appointment = Appointment(*row[:9])
                     # set optional name fields
-                    appointment.student_name = row[8]
-                    appointment.teacher_name = row[9]
+                    appointment.student_name = row[9]
+                    appointment.teacher_name = row[10]
                     return appointment
                 return None
             except Exception as e:

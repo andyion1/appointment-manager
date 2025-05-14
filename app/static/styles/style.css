@@ -256,6 +256,7 @@ button {
 .status-badge.canceled {
     background-color: #dc3545;
     color: white;
+}
 .btn-sm {
   padding: 0.5rem 1rem;
   font-size: 0.875rem;
@@ -468,7 +469,7 @@ button {
 }
 
 /* Edit Profile Section */
-.edit-profile-section {
+.edit-profile-section, .edit-appointment-section {
   padding: 1.5rem;
   background-color: #ffffff;
   border-radius: 8px;
@@ -476,7 +477,7 @@ button {
   margin-bottom: 1.5rem;
 }
 
-.edit-profile-section h3 {
+.edit-profile-section h3, .edit-appointment-section h3 {
   margin-bottom: 1.5rem;
   padding-bottom: 0.5rem;
   border-bottom: 1px solid #f0f0f0;
@@ -605,6 +606,10 @@ button {
 
 .status-badge.cancelled {
   background-color: #e74c3c;
+  color: white;
+}
+.status-badge.in-progress {
+  background-color: #2705d1;
   color: white;
 }
 

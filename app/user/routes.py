@@ -138,11 +138,10 @@ def profile():
             user_image = new_file_name  # Update the image path
 
         # Update user info in the DB
-        updates = {
-            'email': form.email.data,
-            'full_name': form.full_name.data,
-            'user_image': user_image  # Include new image filename if uploaded
-        }
+        updates = {}
+        updates['email'] = form.email.data
+        updates['full_name'] = form.full_name.data
+        updates['user_image'] = user_image  # Include new image filename if uploaded}
         db.update_user(current_user.user_id, updates)  # Make sure db.update_user accepts a dict
 
         flash(f"Profile updated successfully!", 'success')
