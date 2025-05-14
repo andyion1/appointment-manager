@@ -35,7 +35,7 @@
 {% if status_options %}
     <div class="action-buttons">
         {% for option in status_options %}
-        <a href="{{ url_for('appointment.appointments', status=option.value) }}" 
+        <a href="{{ url_for('main.home', status=option.value) }}" 
            class="{% if status_filter == option.value %}primary-button{% else %}secondary-button{% endif %} submit-button">
             {{ option.label }}
         </a>

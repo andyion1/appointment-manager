@@ -1,3 +1,4 @@
+import pdb
 from flask import render_template, redirect, request, url_for, Blueprint
 from flask_login import current_user
 main = Blueprint("main", __name__, template_folder='templates')
@@ -20,7 +21,6 @@ def home():
         user_id=user_id,
         user_role=user_role
     )
-
     status_options = [
         {'value': 'all', 'label': 'All'},
         {'value': 'pending', 'label': 'Pending'},

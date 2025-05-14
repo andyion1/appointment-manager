@@ -316,7 +316,7 @@ class Database:
                 from models.data_classes import Appointment
                 appointments = []
                 for row in rows:
-                    appt = Appointment(*row[:9])  # first 8 fields = expected constructor args
+                    appt = Appointment(*row[:9])  # first 9 fields = expected constructor args
                     appt.student_name = row[9]
                     appt.teacher_name = row[10]
                     appointments.append(appt)
