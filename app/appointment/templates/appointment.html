@@ -7,7 +7,7 @@
     <div class="appointment-detail-header">
         <div class="appointment-header-content">
             <h2>Appointment #{{ appointment.appointment_id }}</h2>
-            <span class="status-badge {{ appointment.status }}">{{ appointment.status }}</span>
+            <span class="status-badge {{ appointment.status|lower|replace(' ', '-') }}">{{ appointment.status }}</span>
         </div>
         <div class="appointment-header-actions">
             <a href="{{ url_for('appointment.appointments') }}" class="back-button">
@@ -34,7 +34,6 @@
                 </div>
             </div>
         </div>
-
         <div class="appointment-section">
             <h3><i class="fas fa-users"></i> Participants</h3>
             <div class="appointment-info-grid">
@@ -46,6 +45,10 @@
                     <span class="info-label">Teacher:</span>
                     <span class="info-value">{{ appointment.teacher_name }}</span>
                 </div>
+                <div class="appointment-info-item">
+                    <span class="info-label">Status:</span>
+                    <span class="info-value">{{ appointment.status }}</span>
+                </div>
             </div>
         </div>
 
@@ -55,19 +58,60 @@
                 {{ appointment.reason }}
             </div>
         </div>
-
-        {% if current_user.role == 'teacher' %}
-        <div class="appointment-section">
-            <h3><i class="fas fa-edit"></i> Update Status</h3>
-            <form method="POST" action="{{ url_for('appointment.update_status', appointment_id=appointment.appointment_id) }}" class="status-update-form">
-                {{ status_form.hidden_tag() }}
-                <div class="form-group-inline">
-                    {{ status_form.status(class="form-control") }}
-                    {{ status_form.submit(class="submit-button primary-button") }}
-                </div>
-            </form>
+    </div>
+    <div class="edit-appointment-section">
+    <h3>Edit Appointment</h3>
+    <form method="post" enctype="multipart/form-data" novalidate id="uploadForm" action="{{ url_for('appointment.appointment', appointment_id=appointment.appointment_id) }}">
+      {{ form.hidden_tag() }}
+      <div class="form-grid">
+        <div class="form-section">
+          {{ form.appointment_date.label(class="form-label") }}
+          {{ form.appointment_date(class="form-control", type="date", id="appointment_date") }}
+          {% if form.appointment_date.errors %}
+            <ul class="errors">
+              {% for error in form.appointment_date.errors %}
+                <li>{{ error }}</li>
+              {% endfor %}
+            </ul>
+          {% endif %}
         </div>
-        {% endif %}
+        <div class="form-section">
+          {{ form.appointment_time.label(class="form-label") }}
+          {{ form.appointment_time(class="form-control", type="time", id="appointment_time") }}
+          {% if form.appointment_time.errors %}
+            <ul class="errors">
+              {% for error in form.appointment_time.errors %}
+                <li>{{ error }}</li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        </div>
+        <div class="form-section">
+          {{ form.status.label(class="form-label") }}
+          {{ form.status(class="form-control", id="status") }}
+          {% if form.status.errors %}
+            <ul class="errors">
+              {% for error in form.status.errors %}
+                <li>{{ error }}</li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        </div>
+        <div class="form-section">
+          {{ form.reason.label(class="form-label") }}
+          {{ form.reason(class="form-control") }}
+          {% if form.reason.errors %}
+            <ul class="errors">
+              {% for error in form.reason.errors %}
+                <li>{{ error }}</li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        </div>
+        <div class="form-actions">
+                {{ form.submit(class="submit-button primary-button") }}
+        </div>
+    </form>
     </div>
 
     {% if appointment.status == "completed" %}
@@ -94,4 +138,35 @@
     </div>
     {% endif %}
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const dateField = document.querySelector('#appointment_date');
+        const timeField = document.querySelector('#appointment_time');
+        const statusField = document.querySelector('#status');
+
+        // Save original values
+        let originalDate = dateField.value;
+        let originalTime = timeField.value;
+
+        function checkForChanges() {
+            const dateChanged = dateField.value !== originalDate;
+            const timeChanged = timeField.value !== originalTime;
+
+            if (dateChanged || timeChanged) {
+                statusField.disabled = true;
+                statusField.title = "Status is auto-set to 'pending' when date or time is changed.";
+            } else {
+                statusField.disabled = false;
+                statusField.title = "";
+            }
+        }
+
+        dateField.addEventListener('input', checkForChanges);
+        timeField.addEventListener('input', checkForChanges);
+
+        checkForChanges(); // Run initially
+    });
+</script>
+
 {% endblock %}

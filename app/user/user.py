@@ -138,7 +138,14 @@ class Student(User):
         if user:
             return db.get_student(f"username = '{username}'")
         return None
-
+    
+    @staticmethod
+    def get_student_by_user_id(user_id):
+        """Fetches a student by their user ID"""
+        user = User.get_user_by_id(user_id)
+        if user:
+            return db.get_student(f"user_id = {user_id}")
+        return None
 
 class Teacher(User):
     def __init__(self, user_id=None, username=None, password_hash=None, email=None, full_name=None, role=None, user_image=None, teacher_id=None, department=None, office_location=None):

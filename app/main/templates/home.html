@@ -25,7 +25,73 @@
     </div>
 </div>
 {% endif %}
+<h2>Appointments</h2>
 
+{% if current_user.is_authenticated %}
+<div class="action-buttons">
+    <a href="{{ url_for('appointment.form') }}" class="submit-button primary-button">Book New Appointment</a>
+</div>
+{% endif %}
+{% if status_options %}
+    <div class="action-buttons">
+        {% for option in status_options %}
+        <a href="{{ url_for('appointment.appointments', status=option.value) }}" 
+           class="{% if status_filter == option.value %}primary-button{% else %}secondary-button{% endif %} submit-button">
+            {{ option.label }}
+        </a>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="no-appointments">
+        <p>No appointments found with the selected filter.</p>
+        <p>{% if status_filter == 'all' %}Click "Book New Appointment" to schedule your first meeting!{% else %}Try selecting a different filter or booking a new appointment.{% endif %}</p>
+    </div>
+{% endif %}
+
+{% if appointments %}
+<div class="appointments-grid">
+    {% for appointment in appointments %}
+    <div class="appointment-card">
+        <div class="appointment-card-header">
+            <h3>Appointment #{{ appointment.appointment_id }}</h3>
+            <span class="status-badge {{ appointment.status }}">{{ appointment.status }}</span>
+        </div>
+        <div class="appointment-card-content">
+            <div class="appointment-card-detail">
+                <span class="detail-label">Date:</span>
+                <span class="detail-value">{{ appointment.appointment_date }}</span>
+            </div>
+            <div class="appointment-card-detail">
+                <span class="detail-label">Time:</span>
+                <span class="detail-value">{{ appointment.appointment_time }}</span>
+            </div>
+            <div class="appointment-card-detail">
+                <span class="detail-label">Student:</span>
+                <span class="detail-value">{{ appointment.student_name }}</span>
+            </div>
+            <div class="appointment-card-detail">
+                <span class="detail-label">Teacher:</span>
+                <span class="detail-value">{{ appointment.teacher_name }}</span>
+            </div>            
+            <div class="appointment-card-detail appointment-card-reason">
+                <span class="detail-label">Reason:</span>
+                <span class="detail-value">{{ appointment.reason }}</span>
+            </div>
+        </div>
+        {% if current_user.is_authenticated %}
+        <div class="appointment-card-footer">
+            <a href="{{ url_for('appointment.appointment', appointment_id=appointment.appointment_id) }}" class="button-link">View Details</a>
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="no-appointments">
+    <p>No appointments found.</p>
+    <p>Click "Book New Appointment" to schedule your first meeting!</p>
+</div>
+{% endif %}
 <div class="stats-grid">
     <div class="stat-card">
         <h3>Easy Booking</h3>
