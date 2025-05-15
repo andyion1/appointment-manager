@@ -17,6 +17,8 @@ adminBlueprint = Blueprint("admin", __name__, template_folder='templates')
 @adminBlueprint.route("/admin/dashboard")
 @login_required
 def dashboard():
+    """Render the admin dashboard with user, appointment, and report counts and
+    paginated admin users list. Access restricted to super admins."""
     if current_user.role != 'admin_super':
         flash("Access denied", "danger")
         return redirect(url_for('main.home'))
@@ -36,6 +38,7 @@ def dashboard():
 @adminBlueprint.route("/admin/create", methods=["GET", "POST"])
 @login_required
 def create_admin():
+    """Allow super admins to create new admin users via form submission."""
     if current_user.role != 'admin_super':
         flash("Only superusers can create admin accounts.", "danger")
         return redirect(url_for('admin.dashboard'))
@@ -68,6 +71,7 @@ def create_admin():
 @adminBlueprint.route('/admin/logs')
 @login_required
 def view_logs():
+    """Display admin action logs. Access restricted to super admins."""
     if current_user.role != 'admin_super':
         flash("Access denied", "danger")
         return redirect(url_for('main.home'))
@@ -82,6 +86,7 @@ def view_logs():
 @adminBlueprint.route('/admin/users')
 @login_required
 def list_users():
+    """List users with pagination. Access allowed to admin_user and admin_super roles only."""
     if current_user.role not in ['admin_user', 'admin_super']:
         flash("Access denied", "danger")
         return redirect(url_for('main.index'))
@@ -100,6 +105,7 @@ def list_users():
 @adminBlueprint.route('/users/<int:user_id>')
 @login_required
 def view_user(user_id):
+    """Show detailed view of a user. Access restricted based on current_user role."""
     if current_user.role not in ['admin_user', 'admin_super']:
         flash("Access denied", "danger")
         return redirect(url_for('main.home'))
@@ -113,6 +119,7 @@ def view_user(user_id):
 @adminBlueprint.route('/users/<int:user_id>/warn', methods=['POST'])
 @login_required
 def warn_user(user_id):
+    """Warn a user by setting their 'warned' status. Restricted access."""
     if current_user.role not in ['admin_user', 'admin_super']:
         flash("Access denied", "danger")
         return redirect(url_for('main.home'))
@@ -127,6 +134,7 @@ def warn_user(user_id):
 @adminBlueprint.route('/users/<int:user_id>/toggle_block', methods=['POST'])
 @login_required
 def toggle_block_user(user_id):
+    """Toggle the block status of a user. Access controlled and action logged."""
     if current_user.role not in ['admin_user', 'admin_super']:
         flash("Access denied", "danger")
         return redirect(url_for('main.home'))
@@ -142,6 +150,7 @@ def toggle_block_user(user_id):
 @adminBlueprint.route('/users/<int:user_id>/delete', methods=['POST'])
 @login_required
 def delete_user(user_id):
+    """Delete a user account. Access restricted to authorized admins."""
     if current_user.role not in ['admin_user', 'admin_super']:
         flash("Access denied", "danger")
         return redirect(url_for('main.home'))
@@ -161,6 +170,7 @@ def delete_user(user_id):
 @adminBlueprint.route("/manage_appoint")
 @login_required
 def manage_appoint():
+    """Manage and paginate appointment listings. Access limited to appointment admins and super admins."""
     if current_user.role not in ['admin_appoint', 'admin_super']:
         flash("Access denied: You do not have permission to view this page.", "danger")
         return redirect(url_for("main.index"))
@@ -176,6 +186,7 @@ def manage_appoint():
 @adminBlueprint.route("/appointments/<int:appointment_id>")
 @login_required
 def view_appointment(appointment_id):
+    """Display detailed information for a specific appointment. Access controlled."""
     if current_user.role not in ['admin_appoint', 'admin_super']:
         flash("Access denied", "danger")
         return redirect(url_for("main.index"))
@@ -188,6 +199,7 @@ from datetime import datetime, time
 @adminBlueprint.route("/appointments/<int:appointment_id>/edit", methods=["GET", "POST"])
 @login_required
 def edit_appointment(appointment_id):
+    """Edit an existing appointment's details via a form. Access restricted."""
     if current_user.role not in ['admin_appoint', 'admin_super']:
         flash("Access denied.", "danger")
         return redirect(url_for("main.index"))
@@ -220,11 +232,10 @@ def edit_appointment(appointment_id):
 
     return render_template("appointment_edit.html", form=form, appointment=appointment)
 
-
-
 @adminBlueprint.route("/appointments/<int:appointment_id>/delete", methods=["POST"])
 @login_required
 def delete_appointment(appointment_id):
+    """Delete an appointment and log the action. Access controlled."""
     if current_user.role not in ['admin_appoint', 'admin_super']:
         flash("Access denied.", "danger")
         return redirect(url_for('main.index'))
@@ -246,6 +257,7 @@ def delete_appointment(appointment_id):
 @adminBlueprint.route('/manage-reports')
 @login_required
 def manage_reports():
+    """Manage and paginate reports listing. Access limited to appointment admins and super admins."""
     if current_user.role not in ['admin_appoint', 'admin_super']:
         flash("Access denied", "danger")
         return redirect(url_for('main.index'))
@@ -262,6 +274,7 @@ def manage_reports():
 @adminBlueprint.route('/reports/<int:report_id>/delete', methods=['POST'])
 @login_required
 def delete_report(report_id):
+    """Delete a report and log the action. Access controlled."""
     if current_user.role not in ['admin_appoint', 'admin_super']:
         flash("Access denied", "danger")
         return redirect(url_for('main.index'))
