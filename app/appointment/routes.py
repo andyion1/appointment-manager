@@ -13,7 +13,7 @@ appointmentBlueprint = Blueprint("appointment", __name__, template_folder='templ
 @appointmentBlueprint.route("/appointments")
 @login_required
 def appointments():
-    # Get appointments based on user role
+    """Display paginated list of appointments filtered by user role and status."""
     page = int(request.args.get('page', 1))
     per_page = 4 
     if current_user.role == 'student':
@@ -31,22 +31,18 @@ def appointments():
             appointments = []
             
     elif current_user.role in ['admin_appoint', 'admin_super']:
-        # Admins can see all appointments
         appointments = db.get_appointments_with_details()
         
     else:
         appointments = []
-    # Get filter parameter from query string, default to 'all'
     status_filter = request.args.get('status', 'all')
     
-    # Get appointments filtered by status and user role
     appointments = db.get_appointments_by_status(
         status=status_filter if status_filter != 'all' else None,
         user_id=current_user.user_id,
         user_role=current_user.role
     )
     
-    # Define available status options for the filter
     status_options = [
         {'value': 'all', 'label': 'All'},
         {'value': 'pending', 'label': 'Pending'},
@@ -71,12 +67,12 @@ def appointments():
 @appointmentBlueprint.route("/appointment/<int:appointment_id>", methods=["GET", "POST"])
 @login_required
 def appointment(appointment_id):
+    """Show and optionally update details of a specific appointment if authorized."""
     appointment = db.get_appointment_with_details(f"a.appointment_id = {appointment_id}")
     if not appointment:
         flash("Appointment not found", "danger")
         return redirect(url_for('appointment.appointments'))
 
-    # Check permissions
     has_permission = False
     if current_user.role in ['admin_appoint', 'admin_super']:
         has_permission = True
@@ -96,10 +92,10 @@ def appointment(appointment_id):
     report = db.get_report_with_details(f"appointment_id = {appointment.appointment_id}")
     form = AppointmentUpdateForm()
     base_status_choices = [
-    ('approved', 'Approved'),
-    ('in progress', 'In Progress'),
-    ('completed', 'Completed'),
-    ('cancelled', 'Cancelled')
+        ('approved', 'Approved'),
+        ('in progress', 'In Progress'),
+        ('completed', 'Completed'),
+        ('cancelled', 'Cancelled')
     ]
     if appointment.created_role == current_user.role:
         base_status_choices = [choice for choice in base_status_choices if choice[0] != 'approved']
@@ -142,13 +138,13 @@ def appointment(appointment_id):
 @appointmentBlueprint.route("/appointment/<int:appointment_id>/status", methods=["POST"])
 @login_required
 def update_status(appointment_id):
+    """Update status of an appointment if the current user is authorized."""
     appointment = db.get_appointment(f"appointment_id = {appointment_id}")
     
     if not appointment:
         flash("Appointment not found", "danger")
         return redirect(url_for('appointment.appointments'))
     
-    # Check permissions
     has_permission = False
     
     if current_user.role == 'teacher':
@@ -175,6 +171,7 @@ def update_status(appointment_id):
 @appointmentBlueprint.route("/bookAppointment", methods=["GET", "POST"])
 @login_required
 def form():
+    """Display and process appointment booking form for students and teachers."""
     form = AppointmentForm()
 
     teachers = db.get_teachers()
