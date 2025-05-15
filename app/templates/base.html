@@ -27,6 +27,7 @@
                 {% if current_user.is_authenticated %}
                 <li><a href="{{ url_for('user.profile') }}"><i class="fas fa-user"></i> Profile</a></li>
                 <li><a href="{{ url_for('user.logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                <li><a href="{{ url_for('api.api') }}"><i class="fas fa-tachometer-alt"></i>API Posts</a></li>
                 {% endif %}
             </ul>
         </div>

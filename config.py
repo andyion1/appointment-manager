@@ -9,4 +9,7 @@ class Config:
 
     SECRET_KEY = 'dev_key_for_development_only'
 
+    CACHE_TYPE = "SimpleCache"  # Or "RedisCache", etc.
+    CACHE_DEFAULT_TIMEOUT = 300
+
     DEBUG = True
