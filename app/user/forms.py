@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import EmailField, FileField, StringField, PasswordField, SubmitField, SelectField
-from wtforms.validators import DataRequired, Length, EqualTo
+from wtforms.validators import DataRequired, Length, EqualTo, Optional
 from flask_wtf.file import FileRequired, FileAllowed
 
 class LoginForm(FlaskForm):
@@ -72,22 +72,21 @@ class StudentExtraForm(FlaskForm):
     submit = SubmitField("Complete Registration")
 
 class TeacherExtraForm(FlaskForm):
-    department = StringField("Department", validators=[DataRequired()])
-    office_location = StringField("Office Location", validators=[DataRequired()])
+    department = StringField("Department")
+    office_location = StringField("Office Location")
     submit = SubmitField("Complete Registration")
 
 class ProfileForm(FlaskForm):
     full_name = StringField('Enter New Full Name', validators=[
-        DataRequired(),
+        Optional(),
         Length(min=3, max=25)
     ])
     email = EmailField('Enter New Email', validators=[
-        DataRequired(),
+        Optional(),
         Length(min=3, max=25)
     ])
     user_image = FileField('Upload New Image Profile Picture', validators=[
-        FileRequired(),
-        FileAllowed(['png', 'jpg', 'jpeg'], 'Only image files are allowed!')
+        FileAllowed(['png', 'jpg', 'jpeg'], 'Only image files are allowed!'), Optional()
     ])
 
     submit = SubmitField('Update')

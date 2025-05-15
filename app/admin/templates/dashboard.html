@@ -39,6 +39,18 @@
             {% endfor %}
         </tbody>
     </table>
+    {% if total_pages > 1 %}
+            <div class="pagination-wrapper">
+                <div class="pagination">
+                    {% for p in range(1, total_pages + 1) %}
+                    <a href="{{ url_for('admin.dashboard', status=status_filter, page=p) }}"
+                    class="pagination-button {% if p == current_page %}active{% endif %}">
+                    {{ p }}
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
 
     <div class="mt-4">
         <a href="{{ url_for('admin.create_admin') }}" class="btn btn-success">Create New Admin</a>
