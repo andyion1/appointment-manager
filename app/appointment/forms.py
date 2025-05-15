@@ -19,3 +19,14 @@ class AppointmentStatusForm(FlaskForm):
         ('cancelled', 'Cancelled')
     ], validators=[DataRequired()])
     submit = SubmitField('Update Status')
+class AppointmentUpdateForm(FlaskForm):
+    appointment_date = DateField('Select New Date', format='%Y-%m-%d', validators=[Optional()])
+    appointment_time = TimeField('Select New Time', format='%H:%M', validators=[Optional()])
+    status = SelectField('Select New Status', choices=[
+       ('approved', 'Approved'),
+        ('in progress', 'In Progress'),
+        ('completed', 'Completed'),
+        ('cancelled', 'Cancelled')
+    ], validators=[Optional()])
+    reason = StringField('Select New Reason', validators=[Optional()])
+    submit = SubmitField('Update Appointment')

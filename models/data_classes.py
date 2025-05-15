@@ -8,6 +8,7 @@ class Appointment:
         self.status = args[5]
         self.reason = args[6]
         self.created_at = args[7]
+        self.created_role = args[8]
 
         # Optional attributes (to be set later)
         self.student_name = None

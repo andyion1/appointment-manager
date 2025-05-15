@@ -1,6 +1,7 @@
 from datetime import datetime
+from math import ceil
 from flask import render_template, redirect, url_for, Blueprint, flash, request
-from app.appointment.forms import AppointmentForm, AppointmentStatusForm
+from app.appointment.forms import AppointmentForm, AppointmentStatusForm, AppointmentUpdateForm
 from flask_login import current_user, login_required
 from models.data_classes import Appointment
 from models.database import db
@@ -14,6 +15,29 @@ appointmentBlueprint = Blueprint("appointment", __name__, template_folder='templ
 @appointmentBlueprint.route("/appointments")
 @login_required
 def appointments():
+    # Get appointments based on user role
+    page = int(request.args.get('page', 1))
+    per_page = 4 
+    if current_user.role == 'student':
+        student = Student.get_student_by_user_name(current_user.username)
+        if student:
+            appointments = db.get_appointments_with_details(f"s.student_id = {student.student_id}")
+        else:
+            appointments = []
+            
+    elif current_user.role == 'teacher':
+        teacher = Teacher.get_teacher_by_user_name(current_user.username)
+        if teacher:
+            appointments = db.get_appointments_with_details(f"t.teacher_id = {teacher.teacher_id}")
+        else:
+            appointments = []
+            
+    elif current_user.role in ['admin_appoint', 'admin_super']:
+        # Admins can see all appointments
+        appointments = db.get_appointments_with_details()
+        
+    else:
+        appointments = []
     # Get filter parameter from query string, default to 'all'
     status_filter = request.args.get('status', 'all')
     
@@ -33,15 +57,21 @@ def appointments():
         {'value': 'cancelled', 'label': 'Cancelled'}
     ]
 
+    total_pages = ceil(len(appointments) / per_page)
+    start = (page - 1) * per_page
+    end = start + per_page
+    appointments_paginated = appointments[start:end]
+
     return render_template(
         "appointments.html", 
-        appointments=appointments, 
+        appointments=appointments_paginated, 
         status_filter=status_filter,
-        status_options=status_options
+        status_options=status_options,
+        total_pages=total_pages
     )
 
 ################################################################################################ HERE!!
-@appointmentBlueprint.route("/appointment/<int:appointment_id>")
+@appointmentBlueprint.route("/appointment/<int:appointment_id>", methods=["GET", "POST"])
 @login_required
 def appointment(appointment_id):
     appointment = db.get_appointment_with_details(f"a.appointment_id = {appointment_id}")
@@ -66,15 +96,53 @@ def appointment(appointment_id):
         flash("You don't have permission to view this appointment", "danger")
         return redirect(url_for('appointment.appointments'))
 
-    form = AppointmentStatusForm()
     report = db.get_report_with_details(f"appointment_id = {appointment.appointment_id}")
+    form = AppointmentUpdateForm()
+    base_status_choices = [
+    ('approved', 'Approved'),
+    ('in progress', 'In Progress'),
+    ('completed', 'Completed'),
+    ('cancelled', 'Cancelled')
+    ]
+    if appointment.created_role == current_user.role:
+        base_status_choices = [choice for choice in base_status_choices if choice[0] != 'approved']
 
-    return render_template(
-        "appointment.html",
-        appointment=appointment,
-        status_form=form,
-        report=report
-    )
+    form.status.choices = base_status_choices
+    # 🟡 Handle form submission
+    if form.validate_on_submit():
+        updates = {}
+
+        date_changed = form.appointment_date.data != appointment.appointment_date
+        time_changed = form.appointment_time.data != appointment.appointment_time
+
+        if date_changed:
+            updates['appointment_date'] = form.appointment_date.data
+        if time_changed:
+            updates['appointment_time'] = form.appointment_time.data
+
+        if date_changed or time_changed:
+            updates['status'] = "pending"
+        elif form.status.data:
+            updates['status'] = form.status.data
+
+        if form.reason.data:
+            updates['reason'] = form.reason.data
+
+        if updates:
+            db.update_appointment(appointment_id, updates)
+            flash("Appointment updated successfully!", "success")
+        else:
+            flash("No changes detected.", "info")
+
+        return redirect(url_for('appointment.appointment', appointment_id=appointment_id))
+
+    # ✅ Prepopulate form fields on GET
+    if request.method == "GET":
+        form.appointment_date.data = appointment.appointment_date
+        form.appointment_time.data = appointment.appointment_time
+        form.status.data = appointment.status
+        form.reason.data = appointment.reason
+    return render_template("appointment.html", appointment=appointment, form=form, report=report)
 
 @appointmentBlueprint.route("/appointment/<int:appointment_id>/status", methods=["POST"])
 @login_required
@@ -135,7 +203,8 @@ def form():
                 form.time.data,
                 "pending",
                 form.reason.data,
-                datetime.now()
+                datetime.now(),
+                'student'
             )
         else:
             new_appointment = Appointment(
@@ -146,7 +215,8 @@ def form():
                 form.time.data,
                 "pending",
                 form.reason.data,
-                datetime.now()
+                datetime.now(),
+                'teacher'
             )
         db.add_appointment(new_appointment)
         return redirect(url_for('appointment.appointments'))
@@ -154,3 +224,5 @@ def form():
         print("Form errors:", form.errors)
 
     return render_template("book_appointment.html", form=form, logo="static/images/logo.PNG", css="static/css/style.css")
+
+    

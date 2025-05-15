@@ -3,6 +3,7 @@ from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from models.database import db
 from datetime import datetime
+from models.utils import save_file
 import pdb
 
 class User(UserMixin):
@@ -38,7 +39,9 @@ class User(UserMixin):
         
         # Create new user with hashed password
         hashed_password = generate_password_hash(password)
-        user = User(0, username, hashed_password, email, full_name, role)
+
+        
+        user = User(0, username, hashed_password, email, full_name, role, "default_pic.jpg")
         
         # Add user to database
         db.add_user(user)
@@ -138,7 +141,14 @@ class Student(User):
         if user:
             return db.get_student(f"username = '{username}'")
         return None
-
+    
+    @staticmethod
+    def get_student_by_user_id(user_id):
+        """Fetches a student by their user ID"""
+        user = User.get_user_by_id(user_id)
+        if user:
+            return db.get_student(f"user_id = {user_id}")
+        return None
 
 class Teacher(User):
     def __init__(self, user_id=None, username=None, password_hash=None, email=None, full_name=None, role=None, user_image=None, teacher_id=None, department=None, office_location=None):

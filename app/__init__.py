@@ -32,5 +32,4 @@ def create_app():
     app.register_blueprint(studentBlueprint)
     app.register_blueprint(teacherBlueprint)
     app.register_blueprint(adminBlueprint)
-    
     return app

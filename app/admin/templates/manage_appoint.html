@@ -39,5 +39,17 @@
             {% endfor %}
         </tbody>
     </table>
+    {% if total_pages > 1 %}
+    <div class="pagination-wrapper">
+        <div class="pagination">
+            {% for p in range(1, total_pages + 1) %}
+            <a href="{{ url_for('admin.manage_appoint', status=status_filter, page=p) }}"
+            class="pagination-button {% if p == current_page %}active{% endif %}">
+            {{ p }}
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}
