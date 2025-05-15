@@ -1,4 +1,5 @@
-from flask import abort, render_template, redirect, url_for, Blueprint
+from math import ceil
+from flask import abort, render_template, redirect, request, url_for, Blueprint
 from models.database import db
 
 teacherBlueprint = Blueprint("teacher", __name__, template_folder="templates")
@@ -12,5 +13,11 @@ def teacher(teacher_id):
 
 @teacherBlueprint.route("/teachers")
 def teachers():
+    page = int(request.args.get('page', 1))
+    per_page = 3
     teachers = db.get_teachers()
-    return render_template("teachers.html", logo="static/images/logo.PNG", css="static/css/style.css", teachers=teachers)
+    total_pages = ceil(len(teachers) / per_page)
+    start = (page - 1) * per_page
+    end = start + per_page
+    teachers_paginated = teachers[start:end]
+    return render_template("teachers.html", total_pages=total_pages, css="static/css/style.css", teachers=teachers_paginated)
