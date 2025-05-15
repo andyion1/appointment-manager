@@ -12,15 +12,14 @@ import pdb
 
 from .forms import LoginForm, RegistrationForm, ProfileForm, StudentExtraForm, TeacherExtraForm
 
-# Define the blueprint with the correct name
 user = Blueprint("user", __name__, template_folder="templates", static_folder="static")
 
 @user.route("/login", methods=['GET', 'POST'])
 def login():
+    """Handle user login."""
     form = LoginForm()
     if request.method == 'POST':
         if form.validate_on_submit():
-            # This would be replaced with actual database query once implemented
             user_login = User.get_user_by_username(form.username.data)
             if user_login:
                 if user_login.status == 'blocked':
@@ -32,13 +31,13 @@ def login():
                     flash(f'Welcome back, {user_login.full_name}. You have been successfully logged in.', 'info')
                     return redirect(url_for('user.profile'))
         else:
-            # If form validation fails, display errors
             flash('Login failed. Please check the form errors.', 'danger')
     
     return render_template("login.html", form=form)
 
 @user.route("/register", methods=['GET', 'POST'])
 def register():
+    """Handle main registration form and role redirection."""
     form = RegistrationForm()
     if request.method == 'POST':
         if form.validate_on_submit():
@@ -61,13 +60,13 @@ def register():
                 flash(f'An error occurred during registration.', 'danger')
                 print("Registration error:", e)
         else:
-            # If form validation fails, display errors
             flash('Registration failed. Please check the form errors.', 'danger')
     
     return render_template("register.html", form=form)
 
 @user.route("/register/student", methods=['GET', 'POST'])
 def student_register():
+    """Handle student-specific registration."""
     form = StudentExtraForm()
     user = session.get('user')
     if not user:
@@ -87,9 +86,9 @@ def student_register():
 
     return render_template("studentregister.html", form=form)
 
-
 @user.route("/register/teacher", methods=['GET', 'POST'])
 def teacher_register():
+    """Handle teacher-specific registration."""
     form = TeacherExtraForm()
     user = session.get('user')
     if not user:
@@ -107,12 +106,12 @@ def teacher_register():
         flash("Teacher registered!", "success")
         return redirect(url_for('user.login'))
 
-    return render_template("teacherregister.html",form=form)
-
+    return render_template("teacherregister.html", form=form)
 
 @user.route("/logout")
 @login_required
 def logout():
+    """Log out the current user."""
     logout_user()
     flash('You have been logged out.', 'info')
     return redirect(url_for('main.home'))
@@ -120,18 +119,20 @@ def logout():
 @user.route("/profile", methods=['GET', 'POST'])
 @login_required
 def profile():
+    """Display and update the current user's profile."""
     user_obj = User.get_user_by_id(current_user.user_id)
     form = ProfileForm(obj=user_obj)
     user_image = current_user.user_image
-    reports=[]
-    # Use get_appointments_with_details with student user_id condition
+    reports = []
     appointments = db.get_appointments_with_details(f"su.user_id = {current_user.user_id}")
+    
     if current_user.role == 'teacher':
         teacher = db.get_teacher_by_user_name(current_user.username)
         if teacher:
             reports = db.get_reports_with_details(f"a.teacher_id = {teacher.teacher_id}")
     elif current_user.role == 'student':
         reports = db.get_reports_with_details(f"r.generated_by = {current_user.user_id}")
+    
     now = datetime.now()
     completed = [a for a in appointments if a.status == "completed"]
     upcoming = sorted(
@@ -170,4 +171,5 @@ def profile():
 @user.route("/users")
 @login_required
 def users():
+    """Display the users page (placeholder)."""
     return render_template("users.html")
