@@ -3,7 +3,6 @@ from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash
 import os
 from datetime import datetime
-
 from models.utils import save_file
 from .user import Student, Teacher, User
 from werkzeug.utils import secure_filename
@@ -121,33 +120,52 @@ def logout():
 @user.route("/profile", methods=['GET', 'POST'])
 @login_required
 def profile():
-    # Get user object directly
     user_obj = User.get_user_by_id(current_user.user_id)
-
-    # Preload form with user data
     form = ProfileForm(obj=user_obj)
+    user_image = current_user.user_image
+    reports=[]
+    # Use get_appointments_with_details with student user_id condition
+    appointments = db.get_appointments_with_details(f"su.user_id = {current_user.user_id}")
+    if current_user.role == 'teacher':
+        teacher = db.get_teacher_by_user_name(current_user.username)
+        if teacher:
+            reports = db.get_reports_with_details(f"a.teacher_id = {teacher.teacher_id}")
+    elif current_user.role == 'student':
+        reports = db.get_reports_with_details(f"r.generated_by = {current_user.user_id}")
+    now = datetime.now()
+    completed = [a for a in appointments if a.status == "completed"]
+    upcoming = sorted(
+        [a for a in appointments if a.status in ["approved", "pending"] and a.appointment_date > now.date()],
+        key=lambda a: a.appointment_date
+    )
 
-    # Default image path (for displaying if needed)
-    user_image = current_user.user_image  # Assumes this field exists on User
+    total_appts = len(appointments)
+    total_reports = len(reports)
+    last_appt = max(completed, key=lambda a: a.appointment_date, default=None)
+    next_appt = upcoming[0] if upcoming else None
+
     if form.validate_on_submit():
-        # Check if a new image was uploaded
         if form.user_image.data:
-            # Save image and get new filename
-            new_file_name = save_file(form.user_image.data)  # You must define save_file()  
-            user_image = new_file_name  # Update the image path
+            new_file_name = save_file(form.user_image.data)
+            user_image = new_file_name
 
-        # Update user info in the DB
-        updates = {}
-        updates['email'] = form.email.data
-        updates['full_name'] = form.full_name.data
-        updates['user_image'] = user_image  # Include new image filename if uploaded}
-        db.update_user(current_user.user_id, updates)  # Make sure db.update_user accepts a dict
-
-        flash(f"Profile updated successfully!", 'success')
+        updates = {
+            'email': form.email.data,
+            'full_name': form.full_name.data,
+            'user_image': user_image
+        }
+        db.update_user(current_user.user_id, updates)
+        flash("Profile updated successfully!", 'success')
         return redirect(url_for('user.profile'))
-    return render_template('profile.html', form=form)
 
-
+    return render_template(
+        'profile.html',
+        form=form,
+        total_appts=total_appts,
+        total_reports=total_reports,
+        last_appt_date=last_appt.appointment_date.strftime("%B %d, %Y") if last_appt else "N/A",
+        next_appt_date=next_appt.appointment_date.strftime("%B %d, %Y") if next_appt else "N/A"
+    )
 
 @user.route("/users")
 @login_required

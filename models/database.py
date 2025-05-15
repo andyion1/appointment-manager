@@ -226,7 +226,7 @@ class Database:
             SELECT u.user_id, u.username, u.password_hash, u.email, u.full_name, u.role, u.user_image,
                 s.student_id, s.program, s.student_number
             FROM USER_PROJ u
-            JOIN Student s ON u.user_id = s.user_id
+            JOIN STUDENT s ON u.user_id = s.user_id
             WHERE {cond}
         """
         with self.get_cursor() as curr:
@@ -239,6 +239,7 @@ class Database:
             except Exception as e:
                 print("get_student error:", e)
                 return None
+
     def get_students(self):
         from app.user.user import Student
         query = """

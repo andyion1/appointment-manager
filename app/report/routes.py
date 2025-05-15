@@ -12,15 +12,25 @@ reportBlueprint = Blueprint("report", __name__, template_folder='templates')
 @reportBlueprint.route("/reports")
 @login_required
 def view():
+    reports = []
+
+    # Teacher: only show reports related to their appointments
     if current_user.role == 'teacher':
         teacher = db.get_teacher_by_user_name(current_user.username)
         if teacher:
             reports = db.get_reports_with_details(f"a.teacher_id = {teacher.teacher_id}")
         else:
             flash("Teacher profile not found.", "danger")
-            reports = []
-    elif current_user.role in ['admin_appoint', 'admin_super', 'student']:
+            return redirect(url_for("main.index"))
+
+    # Student: only show reports they created
+    elif current_user.role == 'student':
+        reports = db.get_reports_with_details(f"r.generated_by = {current_user.user_id}")
+
+    # Admins see all reports
+    elif current_user.role in ['admin_appoint', 'admin_super']:
         reports = db.get_reports_with_details()
+
     else:
         flash("Access denied.", "danger")
         return redirect(url_for("main.index"))

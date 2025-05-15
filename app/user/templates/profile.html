@@ -32,19 +32,19 @@
     <h3>Activity Summary</h3>
     <div class="activity-cards">
       <div class="activity-card">
-        <div class="activity-number">12</div>
+        <div class="activity-number">{{ total_appts }}</div>
         <div class="activity-label">Appointments</div>
       </div>
       <div class="activity-card">
-        <div class="activity-number">4</div>
+        <div class="activity-date">{{ total_reports }}</div>
         <div class="activity-label">Reports</div>
       </div>
       <div class="activity-card">
-        <div class="activity-date">May 5, 2025</div>
+        <div class="activity-date">{{ last_appt_date }}</div>
         <div class="activity-label">Last Appointment</div>
       </div>
       <div class="activity-card">
-        <div class="activity-date">May 15, 2025</div>
+        <div class="activity-date">{{ next_appt_date }}</div>
         <div class="activity-label">Next Appointment</div>
       </div>
     </div>
