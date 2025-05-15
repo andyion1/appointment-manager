@@ -6,6 +6,7 @@ teacherBlueprint = Blueprint("teacher", __name__, template_folder="templates")
 
 @teacherBlueprint.route("/teachers/<int:teacher_id>")
 def teacher(teacher_id):
+    """Return a specific teacher's profile page."""
     teacher = db.get_teacher(f"teacher_id = {teacher_id}")
     if not teacher:
         abort(404)
@@ -13,6 +14,7 @@ def teacher(teacher_id):
 
 @teacherBlueprint.route("/teachers")
 def teachers():
+    """Return a paginated list of all teachers."""
     page = int(request.args.get('page', 1))
     per_page = 3
     teachers = db.get_teachers()
