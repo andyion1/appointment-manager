@@ -1,3 +1,5 @@
+from math import ceil
+import pdb
 from flask import render_template, redirect, request, url_for, Blueprint
 from flask_login import current_user
 main = Blueprint("main", __name__, template_folder='templates')
@@ -9,33 +11,29 @@ def index():
 @main.route("/home")
 def home():
     status_filter = request.args.get('status', 'all')
-
-    # Safely get user_id and role only if logged in
-    user_id = current_user.user_id if current_user.is_authenticated else None
-    user_role = current_user.role if current_user.is_authenticated else None
-
+    page = int(request.args.get('page', 1))
+    per_page = 4    
     # Pass those values to your DB call (handle None in your DB function accordingly)
-    appointments = db.get_appointments_by_status(
-        status=status_filter if status_filter != 'all' else None,
-        user_id=user_id,
-        user_role=user_role
-    )
-
+    appointments = db.get_appointments_by_status(status=status_filter if status_filter != 'all' else None)
     status_options = [
         {'value': 'all', 'label': 'All'},
         {'value': 'pending', 'label': 'Pending'},
         {'value': 'approved', 'label': 'Approved'},
         {'value': 'completed', 'label': 'Completed'},
         {'value': 'cancelled', 'label': 'Cancelled'}
-    ]
-
+        ]
+    total_pages = ceil(len(appointments) / per_page)
+    start = (page - 1) * per_page
+    end = start + per_page
+    appointments_paginated = appointments[start:end]
     return render_template(
         "home.html",
         logo="static/images/logo.PNG",
         status_filter=status_filter,
         status_options=status_options,
         css="static/css/style.css",
-        appointments=appointments
+        appointments=appointments_paginated,
+        total_pages=total_pages
     )
 
 

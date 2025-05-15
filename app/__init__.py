@@ -8,6 +8,7 @@ from .user.routes import user
 from .student.routes import studentBlueprint
 from .teacher.routes import teacherBlueprint
 from .api.routes import apiBlueprint
+from .admin.routes import adminBlueprint
 from .user.user import User
 from config import Config
 from .extensions import cache
@@ -36,4 +37,5 @@ def create_app():
     app.register_blueprint(teacherBlueprint)
     app.register_blueprint(apiBlueprint)
     
+    app.register_blueprint(adminBlueprint)
     return app

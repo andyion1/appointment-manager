@@ -132,6 +132,22 @@ class Database:
             except Exception as e:
                 print("update_user error:", e)
 
+    def update_user_password(self, user_id, new_hashed_password):
+        """Update the hashed password of a user"""
+        qry = """
+            UPDATE USER_PROJ
+            SET password_hash = %s
+            WHERE user_id = %s
+        """
+        with self.get_cursor() as curr:
+            try:
+                curr.execute(qry, (new_hashed_password, user_id))
+                return curr.rowcount > 0
+            except Exception as e:
+                print("update_user_password error:", e)
+                return False
+
+
     def delete_user(self, user_id):
         qry = "DELETE FROM USER_PROJ WHERE user_id = %s"
         with self.get_cursor() as curr:
@@ -210,7 +226,7 @@ class Database:
             SELECT u.user_id, u.username, u.password_hash, u.email, u.full_name, u.role, u.user_image,
                 s.student_id, s.program, s.student_number
             FROM USER_PROJ u
-            JOIN Student s ON u.user_id = s.user_id
+            JOIN STUDENT s ON u.user_id = s.user_id
             WHERE {cond}
         """
         with self.get_cursor() as curr:
@@ -223,6 +239,7 @@ class Database:
             except Exception as e:
                 print("get_student error:", e)
                 return None
+
     def get_students(self):
         from app.user.user import Student
         query = """
@@ -316,7 +333,7 @@ class Database:
                 from models.data_classes import Appointment
                 appointments = []
                 for row in rows:
-                    appt = Appointment(*row[:9])  # first 8 fields = expected constructor args
+                    appt = Appointment(*row[:9])  # first 9 fields = expected constructor args
                     appt.student_name = row[9]
                     appt.teacher_name = row[10]
                     appointments.append(appt)

@@ -1,3 +1,4 @@
+from math import ceil
 from flask import flash, render_template, redirect, request, url_for, Blueprint
 from app.user.user import User
 from flask_login import current_user, login_required
@@ -15,12 +16,17 @@ def list_users():
     if current_user.role not in ['admin_user', 'admin_super']:
         flash("Access denied", "danger")
         return redirect(url_for('main.index'))
+    page = int(request.args.get('page', 1))
+    per_page = 10
     raw_users = db.get_users()
     if current_user.role == 'admin_user':
         raw_users = [u for u in raw_users if u[5] in ['student', 'teacher']]
-
     users = [User(*row) for row in raw_users]
-    return render_template("view-users.html", logo="static/images/logo.PNG", css="static/css/style.css", users=users)
+    total_pages = ceil(len(users) / per_page)
+    start = (page - 1) * per_page
+    end = start + per_page
+    users_paginated = users[start:end]
+    return render_template("view-users.html", logo="static/images/logo.PNG", css="static/css/style.css", users=users_paginated, total_pages=total_pages)
 
 @adminBlueprint.route('/users/<int:user_id>')
 @login_required
@@ -57,8 +63,14 @@ def manage_appoint():
     if current_user.role not in ['admin_appoint', 'admin_super']:
         flash("Access denied: You do not have permission to view this page.", "danger")
         return redirect(url_for("main.index"))
+    page = int(request.args.get('page', 1))
+    per_page = 10
     appointments = db.get_appointments_with_details()
-    return render_template("manage_appoint.html", logo="static/images/logo.PNG", css="static/css/style.css", appointments=appointments)
+    total_pages = ceil(len(appointments) / per_page)
+    start = (page - 1) * per_page
+    end = start + per_page
+    appointments_paginated = appointments[start:end]
+    return render_template("manage_appoint.html", logo="static/images/logo.PNG", css="static/css/style.css", appointments=appointments_paginated, total_pages=total_pages)
 
 @adminBlueprint.route("/appointments/<int:appointment_id>")
 @login_required
@@ -162,13 +174,18 @@ def dashboard():
     if current_user.role != 'admin_super':
         flash("Access denied", "danger")
         return redirect(url_for('main.home'))
-
+    page = int(request.args.get('page', 1))
+    per_page = 3
     user_count = len(db.get_users())
     appoint_count = len(db.get_appointments_with_details())
     report_count = len(db.get_reports())
     admin_users = [u for u in db.get_users() if u[5] in ['admin_user', 'admin_appoint', 'admin_super']]  # role at index 5
-
-    return render_template("dashboard.html", user_count=user_count, appoint_count=appoint_count, report_count=report_count, admin_users=admin_users, logo="static/images/logo.PNG", css="static/css/style.css")
+    total_pages = ceil(len(admin_users) / per_page)
+    start = (page - 1) * per_page
+    end = start + per_page
+    admin_users_paginated = admin_users[start:end]
+    return render_template("dashboard.html", user_count=user_count, appoint_count=appoint_count, 
+        report_count=report_count, admin_users=admin_users_paginated, total_pages=total_pages, css="static/css/style.css", )
 
 @adminBlueprint.route('/manage-reports')
 @login_required
@@ -176,9 +193,15 @@ def manage_reports():
     if current_user.role not in ['admin_appoint', 'admin_super']:
         flash("Access denied", "danger")
         return redirect(url_for('main.index'))
+    page = int(request.args.get('page', 1))
+    per_page = 10
     raw = db.get_reports()
     reports = [Report(*r) for r in raw]
-    return render_template("manage_reports.html", reports=reports, logo="static/images/logo.PNG", css="static/css/style.css")
+    total_pages = ceil(len(reports) / per_page)
+    start = (page - 1) * per_page
+    end = start + per_page
+    reports_paginated = reports[start:end]
+    return render_template("manage_reports.html", reports=reports_paginated, total_pages=total_pages, css="static/css/style.css")
 
 @adminBlueprint.route('/reports/<int:report_id>/delete', methods=['POST'])
 @login_required
