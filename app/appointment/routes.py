@@ -219,5 +219,3 @@ def form():
         print("Form errors:", form.errors)
 
     return render_template("book_appointment.html", form=form, logo="static/images/logo.PNG", css="static/css/style.css")
-
-    

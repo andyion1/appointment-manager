@@ -12,7 +12,6 @@ import pdb
 
 from .forms import LoginForm, RegistrationForm, ProfileForm, StudentExtraForm, TeacherExtraForm
 
-# Define the blueprint with the correct name
 user = Blueprint("user", __name__, template_folder="templates", static_folder="static")
 
 @user.route("/login", methods=['GET', 'POST'])
@@ -20,7 +19,6 @@ def login():
     form = LoginForm()
     if request.method == 'POST':
         if form.validate_on_submit():
-            # This would be replaced with actual database query once implemented
             user_login = User.get_user_by_username(form.username.data)
             if user_login:
                 if user_login.status == 'blocked':
@@ -32,7 +30,6 @@ def login():
                     flash(f'Welcome back, {user_login.full_name}. You have been successfully logged in.', 'info')
                     return redirect(url_for('user.profile'))
         else:
-            # If form validation fails, display errors
             flash('Login failed. Please check the form errors.', 'danger')
     
     return render_template("login.html", form=form)
@@ -61,7 +58,6 @@ def register():
                 flash(f'An error occurred during registration.', 'danger')
                 print("Registration error:", e)
         else:
-            # If form validation fails, display errors
             flash('Registration failed. Please check the form errors.', 'danger')
     
     return render_template("register.html", form=form)
@@ -124,7 +120,6 @@ def profile():
     form = ProfileForm(obj=user_obj)
     user_image = current_user.user_image
     reports=[]
-    # Use get_appointments_with_details with student user_id condition
     appointments = db.get_appointments_with_details(f"su.user_id = {current_user.user_id}")
     if current_user.role == 'teacher':
         teacher = db.get_teacher_by_user_name(current_user.username)

@@ -13,8 +13,6 @@ reportBlueprint = Blueprint("report", __name__, template_folder='templates')
 @login_required
 def view():
     reports = []
-
-    # Teacher: only show reports related to their appointments
     if current_user.role == 'teacher':
         teacher = db.get_teacher_by_user_name(current_user.username)
         if teacher:
@@ -22,12 +20,9 @@ def view():
         else:
             flash("Teacher profile not found.", "danger")
             return redirect(url_for("main.index"))
-
-    # Student: only show reports they created
     elif current_user.role == 'student':
         reports = db.get_reports_with_details(f"r.generated_by = {current_user.user_id}")
 
-    # Admins see all reports
     elif current_user.role in ['admin_appoint', 'admin_super']:
         reports = db.get_reports_with_details()
 
@@ -143,15 +138,12 @@ def update(report_id):
 
     has_permission = False
 
-    # Admins can always edit
     if current_user.role in ['admin_appoint', 'admin_super']:
         has_permission = True
 
-    # Students who created the report can edit
     elif report.generated_by == current_user.user_id:
         has_permission = True
 
-    # Teacher who handled the appointment (match on name)
     elif current_user.role == 'teacher' and report.teacher_name == current_user.full_name:
         has_permission = True
 
