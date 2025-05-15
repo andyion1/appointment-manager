@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block title %}API Details{% endblock %}
+{% block content %}
+        <section id="api_body">
+            <h2> JSON FILES </h2>
+
+            <ul class="popup" id="jsons">
+                <li>
+                  <a href="{{ url_for('api.users') | safe }}"> Users </a>
+                </li>
+                <li>
+                  <a href="{{ url_for('api.appointments') | safe }}"> Appointments </a>
+                </li>
+                <li>
+                  <a href="{{ url_for('api.reports') | safe }}"> Reports </a>
+                </li>
+            </ul>
+        </section>
+{% endblock %}
