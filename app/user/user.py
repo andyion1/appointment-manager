@@ -18,7 +18,20 @@ class User(UserMixin):
         self.status = args[7] if len(args) > 7 else 'active'
         self.warned = args[8] if len(args) > 8 else False
     
-    
+    def to_dict(self):
+        return {
+            "user_id": self.user_id,
+            "username": self.username,
+            # Password hash usually should NOT be sent in API responses!
+            # So you might omit it for security reasons
+            "email": self.email,
+            "full_name": self.full_name,
+            "role": self.role,
+            "user_image": self.user_image,
+            "status": self.status,
+            "warned": self.warned
+        }
+
     def get_id(self):
         return str(self.user_id)
     
