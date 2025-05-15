@@ -2,19 +2,138 @@
 
 {% block title %}API Details{% endblock %}
 {% block content %}
-        <section id="api_body">
-            <h2> JSON FILES </h2>
+<section id="api_body">
+    <h2> JSON FILES </h2>
 
-            <ul class="popup" id="jsons">
-                <li>
-                  <a href="{{ url_for('api.users') | safe }}"> Users </a>
-                </li>
-                <li>
-                  <a href="{{ url_for('api.appointments') | safe }}"> Appointments </a>
-                </li>
-                <li>
-                  <a href="{{ url_for('api.reports') | safe }}"> Reports </a>
-                </li>
-            </ul>
-        </section>
+    <ul class="popup" id="jsons">
+        <li>
+            <a href="{{ url_for('api.users') | safe }}" class="submit-button primary-button"> Users </a>
+        </li>
+        <li>
+            <a href="{{ url_for('api.appointments') | safe }}" class="submit-button primary-button"> Appointments </a>
+        </li>
+        <li>
+            <a href="{{ url_for('api.reports') | safe }}" class="submit-button primary-button"> Reports </a>
+        </li>
+    </ul>
+
+    <ul class="button-list">
+        <li>
+            <button id="user-button">Individual Users</button>
+        </li>
+        <li>
+            <button id="appointment-button">Individual Appointments</button>
+        </li>
+        <li>
+            <button id="report-button">Individual Reports</button>
+        </li>
+    </ul>
+</section>
+
+<!-- Output sections -->
+
+<div id="user-section" style="display: none;">
+    <h3>Users</h3>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Full Name</th>
+                <th>Username</th>
+                <th>Email</th>
+                <!-- Add other user columns as needed -->
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+                <tr>
+                <td><a href="{{ url_for('api.user', id=user[0]) }}">{{ user[4] }}</a></td>
+                <td><a href="{{ url_for('api.user', id=user[0]) }}">{{ user[1] }}</a></td>
+                <td><a href="{{ url_for('api.user', id=user[0]) }}">{{ user[3] }}</a></td>
+            </tr>
+            {% else %}
+            <tr><td colspan="3">No users found.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div id="appointment-section" style="display: none;">
+    <h3>Appointments</h3>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Appointment ID</th>
+                <th>Student ID</th>
+                <th>Teacher ID</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Status</th>
+                <!-- Add other appointment columns as needed -->
+            </tr>
+        </thead>
+        <tbody>
+            {% for app in appointments %}
+            <tr>
+                <td><a href="{{ url_for('api.appointment', id=app.appointment_id) }}">{{ app.appointment_id }}</a></td>
+                <td><a href="{{ url_for('api.appointment', id=app.appointment_id) }}">{{ app.student_id }}</a></td>
+                <td><a href="{{ url_for('api.appointment', id=app.appointment_id) }}">{{ app.teacher_id }}</a></td>
+                <td><a href="{{ url_for('api.appointment', id=app.appointment_id) }}">{{ app.appointment_date }}</a></td>
+                <td><a href="{{ url_for('api.appointment', id=app.appointment_id) }}">{{ app.appointment_time }}</a></td>
+                <td><a href="{{ url_for('api.appointment', id=app.appointment_id) }}">{{ app.status }}</a></td>
+            </tr>
+            {% else %}
+            <tr><td colspan="6">No appointments found.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div id="report-section" style="display: none;">
+    <h3>Reports</h3>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Report ID</th>
+                <th>User ID</th>
+                <th>Created At</th>
+                <th>Feedback</th>
+                <!-- Add other report columns as needed -->
+            </tr>
+        </thead>
+        <tbody>
+            {% for report in reports %}
+            <tr>
+                <td><a href="{{ url_for('api.report', id=report[0]) }}">{{ report[0] }}</a></td>
+                <td><a href="{{ url_for('api.report', id=report[0]) }}">{{ report[1] }}</a></td>
+                <td><a href="{{ url_for('api.report', id=report[0]) }}">{{ report[2] }}</a></td>
+                <td><a href="{{ url_for('api.report', id=report[0]) }}">{{ report[4] }}</a></td>
+            </tr>
+            {% else %}
+            <tr><td colspan="4">No reports found.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<script>
+document.getElementById("user-button").addEventListener("click", () => {
+    showOnly("user-section");
+});
+
+document.getElementById("appointment-button").addEventListener("click", () => {
+    showOnly("appointment-section");
+});
+
+document.getElementById("report-button").addEventListener("click", () => {
+    showOnly("report-section");
+});
+
+function showOnly(idToShow) {
+    const sections = ["user-section", "appointment-section", "report-section"];
+    sections.forEach(id => {
+        const div = document.getElementById(id);
+        div.style.display = (id === idToShow) ? "block" : "none";
+    });
+}
+</script>
 {% endblock %}
