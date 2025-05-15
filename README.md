@@ -28,6 +28,8 @@ This project uses Python and a database to store all the appointments and user i
 - **Status Tracking**: See if appointments are pending, approved, or completed
 - **Feedback System**: Create reports after meetings
 - **User Profiles**: Manage your personal information
+- **Whoever make an appointment will not be able to set status to approved because the person they made it for must(which they have the option to do)
+- **When changing the time or date in an appointment the status will automatically be changed to pending since the other person must see the change of time in order to reapprove it.
 
 ## Made By
 
