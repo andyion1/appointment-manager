@@ -10,8 +10,6 @@ from app.user.user import Teacher, Student
 
 appointmentBlueprint = Blueprint("appointment", __name__, template_folder='templates')
 
-# Update this in your app/appointment/routes.py file
-
 @appointmentBlueprint.route("/appointments")
 @login_required
 def appointments():
@@ -70,7 +68,6 @@ def appointments():
         total_pages=total_pages
     )
 
-################################################################################################ HERE!!
 @appointmentBlueprint.route("/appointment/<int:appointment_id>", methods=["GET", "POST"])
 @login_required
 def appointment(appointment_id):
@@ -108,7 +105,6 @@ def appointment(appointment_id):
         base_status_choices = [choice for choice in base_status_choices if choice[0] != 'approved']
 
     form.status.choices = base_status_choices
-    # 🟡 Handle form submission
     if form.validate_on_submit():
         updates = {}
 
@@ -136,7 +132,6 @@ def appointment(appointment_id):
 
         return redirect(url_for('appointment.appointment', appointment_id=appointment_id))
 
-    # ✅ Prepopulate form fields on GET
     if request.method == "GET":
         form.appointment_date.data = appointment.appointment_date
         form.appointment_time.data = appointment.appointment_time
